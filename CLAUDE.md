@@ -153,3 +153,15 @@ Quality gates (all must be green before commit):
 ### Bundled package data
 
 Anything inside `docx_builder/` that is not a `.py` file (`templates/`, `skill/`) ships with the wheel via hatchling's default packaging. Confirm with `uv build --wheel && unzip -l dist/*.whl` after changes.
+
+### Syncing the Claude Code skill
+
+The bundled `docx_builder/skill/SKILL.md` is also installed globally under `~/.brain/skills/docx_builder/` so it surfaces in every Claude Code session (and the `.brain` sync script picks it up).
+
+After editing `docx_builder/skill/SKILL.md` in this repo, copy it across:
+
+```bash
+cp docx_builder/skill/SKILL.md ~/www/claude/.brain/skills/docx_builder/SKILL.md
+```
+
+The global symlink `~/.claude/skills/docx_builder → ~/www/claude/.brain/skills/docx_builder` already exists; only the file content needs the manual copy.
