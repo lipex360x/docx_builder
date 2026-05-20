@@ -129,12 +129,18 @@ These are still committed and pushed, but the `[Unreleased]` section in `CHANGEL
 
 Tracked as GitHub issues. Current planned items (mirrored in `CHANGELOG.md` under `[Unreleased]`):
 
-- [#1](https://github.com/lipex360x/docx_builder/issues/1) — `docx_builder export pdf` + `build --pdf` (macOS + Microsoft Word). Includes Word permission-dialog workaround via scratch directory, and real page-count reporting.
-- [#2](https://github.com/lipex360x/docx_builder/issues/2) — Quality-of-life bundle: h3 colour bug, `--open` flag, content reuse (`extends:` / `include:`), deprecation warning for `hide_page_counter`, `init` message polish, Word auth doc.
+- [#1](https://github.com/lipex360x/docx_builder/issues/1) — `docx_builder export pdf` + `build --pdf` (macOS + Microsoft Word). Includes Word permission-dialog workaround via scratch directory, and real page-count reporting. **Ready to implement.**
+- [#2](https://github.com/lipex360x/docx_builder/issues/2) — QoL bug fix + small features: h3 colour bug, `--open` flag, deprecation warning for `hide_page_counter`, `init` message polish, Word auth doc. **Ready to implement.**
+- [#3](https://github.com/lipex360x/docx_builder/issues/3) — Content reuse between `content.yaml` files (e.g. shared work history across two CVs). **Needs design** — three candidate mechanisms (`extends:` / `include:` / YAML anchors), no AC yet.
 - Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls.
 - PDF-to-YAML transcription workflow — guided protocol for analysing a source PDF and emitting matching `content.yaml`.
 
 When opening a new roadmap item: create a GitHub issue, link it from `CHANGELOG.md` under `[Unreleased]`, and reference it back from this section.
+
+**Issue maturity tags:**
+
+- **Ready to implement** — full AC, solution shape known. Pick up and code.
+- **Needs design** — captures the problem and candidate mechanisms, but no acceptance criteria yet. A design pass must precede implementation. Do not write AC until a path is chosen — see `feedback-issue-detail-strategy` memory for the rationale.
 
 ## Issue lifecycle — mandatory final-step checklist
 
