@@ -68,7 +68,17 @@ docx_builder install skill              # install Claude Code skill (asks scope)
 docx_builder install skill --scope local|global
 ```
 
-Re-install with `uv tool install --reinstall .` after pulling changes.
+Re-install after pulling **or after editing the package locally** — the globally installed binary at `~/.local/bin/docx_builder` is a snapshot, not a live link to the source. Until you re-run `uv tool install`, behaviour observed via the global `docx_builder` command keeps reflecting the previously installed version:
+
+```bash
+uv tool install --reinstall .
+```
+
+In-tree development (without affecting the global binary) is fine via `uv run` from the repo root:
+
+```bash
+uv run python -m docx_builder.cli build /some/dir
+```
 
 ## Styles
 
