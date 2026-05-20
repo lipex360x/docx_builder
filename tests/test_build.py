@@ -147,6 +147,46 @@ def test_build_no_hidden_sections_has_page_numbers_everywhere(tmp_path: Path, co
     assert "PAGE" in footer_xml
 
 
+def test_build_front_matter_suppresses_footer(tmp_path: Path) -> None:
+    content = {
+        "front_matter": [
+            {"call": "page_break"},
+            {"call": "toc", "levels": "1-2"},
+        ],
+        "sections": [
+            {"call": "h1", "text": "Introduction"},
+        ],
+    }
+    _write_yaml(tmp_path / "content.yaml", content)
+
+    build(str(tmp_path))
+
+    output_document = Document(str(tmp_path / "Report.docx"))
+    assert len(output_document.sections) >= 2
+    front_footer_xml = output_document.sections[0].footer._element.xml
+    body_footer_xml = output_document.sections[1].footer._element.xml
+    assert "PAGE" not in front_footer_xml
+    assert "PAGE" in body_footer_xml
+
+
+def test_build_page_numbers_disabled_clears_all_footers(tmp_path: Path) -> None:
+    content = {
+        "page_numbers": False,
+        "sections": [
+            {"call": "h1", "text": "Curriculum"},
+            {"call": "body", "text": "One-page resume content."},
+        ],
+    }
+    _write_yaml(tmp_path / "content.yaml", content)
+
+    build(str(tmp_path))
+
+    output_document = Document(str(tmp_path / "Report.docx"))
+    for section in output_document.sections:
+        footer_xml = section.footer._element.xml
+        assert "PAGE" not in footer_xml
+
+
 def test_build_hide_page_counter_on_sections_suppresses_cover_footer(tmp_path: Path, cover_dir: Path) -> None:
     content = {
         "cover": _MINIMAL_COVER,

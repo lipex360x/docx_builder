@@ -125,57 +125,78 @@ Open the generated `.docx`, press `Cmd+A` (or `Ctrl+A`) then `F9` to refresh fie
 
 ## content.yaml reference
 
+Every top-level block is optional. The minimal valid `content.yaml` produces a blank document. Realistic shapes:
+
+### Top-level blocks
+
+| Block | Type | Description |
+|-------|------|-------------|
+| `cover` | mapping | Optional cover sheet. When omitted, no template is loaded. |
+| `styles` | mapping | Optional visual overrides — see [Styles](#styles). |
+| `page_numbers` | bool | Default `true`. Set `false` to disable the footer counter everywhere. |
+| `front_matter` | list | Sections rendered first, **without** page numbers (cover sheet items, TOC). |
+| `sections` | list | Sections rendered after `front_matter`, **with** page numbers (unless `page_numbers: false`). |
+
 ### Cover fields
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `template` | yes | Filename of the `.docx` cover template. Defaults to `CA Cover Sheet.docx` (bundled). Use an absolute path, or pass `--template-dir` to point at a custom location. |
-| `output` | no | Output filename pattern. Supports `{number}`, `{name}`, and any string field defined under `cover`. Defaults to `CA_Report_{number}.docx`. |
-| `number` | yes | Document identifier — used in the default output filename and exposed as `{number}` to `output`. |
-| `rows` | yes | Strings filled into the cover table, one per row, in order. |
-| `ai_declaration` | no | When present, appended after the cover table with a bold "AI Use Declaration:" prefix. |
-
-> [!NOTE]
-> `rows` maps directly to table rows by index. Row 0 in the YAML fills row 0 in the `.docx` cover table. Adapt the list to match the number of rows in your own template.
+| `template` | no | `.docx` cover template. Absolute path, relative path with separators (anchored at project dir), or bare filename (looked up in `--template-dir`). Omit for a blank document. |
+| `output` | no | Output filename pattern. Placeholders are any string field defined under `cover` (e.g. `{number}`, `{name}`). Defaults to `Report_{number}.docx`. |
+| `number` | no | Document identifier — exposed as `{number}` to `output`. |
+| `rows` | no | Strings filled into the cover table by row index. Row 0 → row 0 of the `.docx` table. |
+| `ai_declaration` | no | Optional paragraph appended after the cover table with a bold "AI Use Declaration:" prefix. |
 
 ### Section types
 
 | `call` | Required fields | Optional fields | Description |
 |--------|-----------------|-----------------|-------------|
+| `page_break` | — | — | Hard page break |
 | `toc` | — | `levels` (default `"1-2"`) | Word TOC field — update in Word with `Cmd+A` → `F9` |
-| `h1` | `text` | — | Heading 1 — 14 pt, bold |
-| `h2` | `text` | — | Heading 2 — 12 pt, bold |
-| `h3` | `text` | — | Heading 3 — 11 pt, bold |
-| `body` | `text` | — | Body paragraph — 11 pt |
-| `bullet` | `text` | — | Bulleted item with `•` prefix and 0.3 in left indent |
-| `bold_lead` | `bold`, `rest` | — | Bullet with a bold lead phrase followed by regular text |
-| `reference` | `text` | — | Hanging-indent paragraph for bibliography entries |
-| `page_break` | — | — | Inserts a hard page break |
-| `figure` | `filename`, `label`, `caption` | — | Centred image with bold label and italic caption |
-| `figure_pair` | `filename1`, `filename2`, `label`, `caption` | — | Two images side-by-side in a borderless table |
+| `h1` / `h2` / `h3` | `text` | `style` | Headings 1–3 |
+| `body` | `text` | `style` | Body paragraph |
+| `bullet` | `text` | `style` | Bulleted item with configurable glyph |
+| `bold_lead` | `bold`, `rest` | `style` | Bullet with bold lead phrase followed by regular text |
+| `reference` | `text` | `style` | Hanging-indent paragraph for bibliography entries |
+| `figure` | `filename`, `label`, `caption` | `width`, `style`, `caption_style` | Centred image with caption |
+| `figure_pair` | `filename1`, `filename2`, `label`, `caption` | `width1`, `width2`, `style`, `caption_style` | Two images side-by-side |
 
-Every section type accepts the optional key `hide_page_counter: true`.
+Any section type may appear in either `front_matter` or `sections` — the distinction is only about page numbering.
 
-### Page number visibility (`hide_page_counter`)
+### Page numbering — three modes
 
 ```yaml
+# Mode A — no page numbers anywhere (CVs, one-pagers, fliers)
+page_numbers: false
+
 sections:
+  - call: h1
+    text: Jane Doe
+```
+
+```yaml
+# Mode B — cover/TOC unnumbered, content numbered (reports)
+front_matter:
   - call: page_break
-    hide_page_counter: true   # footer hidden — page still counted
-
   - call: toc
-    levels: 1-2
-    hide_page_counter: true
 
-  - call: page_break          # first section without the flag — page numbers start here
+sections:
   - call: h1
     text: Introduction
 ```
 
-When at least one section has `hide_page_counter: true`, the renderer inserts a continuous section break at the first section without the flag. Sections before the break have an empty footer; sections after show `page / total` right-aligned at 9 pt.
+```yaml
+# Mode C — every page numbered (simple paginated docs)
+sections:
+  - call: h1
+    text: Chapter 1
+```
+
+> [!NOTE]
+> The legacy flag `hide_page_counter: true` on individual sections still works for backward compatibility. New documents should prefer the cleaner `front_matter:` block.
 
 > [!TIP]
-> Missing image files do not crash the build — a `[IMAGE NOT FOUND: filename]` placeholder is inserted instead. This lets you draft the document before all screenshots are ready.
+> Missing image files do not crash the build — a `[IMAGE NOT FOUND: filename]` placeholder is inserted instead. Lets you draft the document before all screenshots are ready.
 
 <div align="right"><a href="#docx_builder">↑ Back to top</a></div>
 

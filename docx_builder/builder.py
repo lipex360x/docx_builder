@@ -79,6 +79,19 @@ def _load_document(
     return Document(str(cover_path))
 
 
+def _normalise_sections(data: dict[str, Any]) -> tuple[list[dict[str, Any]], bool]:
+    front_matter: list[dict[str, Any]] = list(data.get("front_matter") or [])
+    body_sections: list[dict[str, Any]] = list(data.get("sections") or [])
+
+    if front_matter:
+        flagged_front = [{**item, "hide_page_counter": True} for item in front_matter]
+        merged = flagged_front + body_sections
+        return merged, bool(flagged_front)
+
+    has_hidden = any(bool(section.get("hide_page_counter")) for section in body_sections)
+    return body_sections, has_hidden
+
+
 def build(
     project_dir: str | Path,
     *,
@@ -95,21 +108,22 @@ def build(
 
     cover: dict[str, Any] = data.get("cover") or {}
     styles_block: dict[str, dict[str, Any]] = data.get("styles") or {}
+    page_numbers_enabled = bool(data.get("page_numbers", True))
     resolver = StyleResolver(global_overrides=styles_block)
 
     output_path = _resolve_output_path(project_path, cover, output_override)
     images_dir = project_path / "images"
 
-    sections_data: list[dict[str, Any]] = data.get("sections", [])
-    has_hidden = any(bool(section.get("hide_page_counter")) for section in sections_data)
+    merged_sections, has_front_matter = _normalise_sections(data)
 
     document = _load_document(cover, template_dir, project_path)
     if cover:
         fill_cover(document, cover)
-    render_sections(document, sections_data, images_dir=str(images_dir), resolver=resolver)
+    render_sections(document, merged_sections, images_dir=str(images_dir), resolver=resolver)
 
-    footer_style = resolver.resolve("footer")
-    add_page_numbers(document, style=footer_style, skip_cover_sections=has_hidden)
+    if page_numbers_enabled:
+        footer_style = resolver.resolve("footer")
+        add_page_numbers(document, style=footer_style, skip_cover_sections=has_front_matter)
 
     document.save(str(output_path))
     return output_path
@@ -126,5 +140,4 @@ def init_project(project_dir: str | Path, *, force: bool = False) -> Path:
     skeleton = files("docx_builder.templates").joinpath("content.skeleton.yaml").read_text()
     content_path.write_text(skeleton)
 
-    (project_path / "images").mkdir(exist_ok=True)
     return content_path

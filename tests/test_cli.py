@@ -6,11 +6,24 @@ from docx_builder.builder import init_project
 from docx_builder.cli import main
 
 
-def test_init_creates_content_yaml_and_images(tmp_path: Path) -> None:
+def test_init_creates_content_yaml(tmp_path: Path) -> None:
     init_project(tmp_path)
 
     assert (tmp_path / "content.yaml").exists()
-    assert (tmp_path / "images").is_dir()
+
+
+def test_init_does_not_create_images_dir(tmp_path: Path) -> None:
+    init_project(tmp_path)
+
+    assert not (tmp_path / "images").exists()
+
+
+def test_init_skeleton_is_minimal(tmp_path: Path) -> None:
+    init_project(tmp_path)
+
+    content = (tmp_path / "content.yaml").read_text()
+    assert "content.yaml" in content
+    assert "styles-reference.md" in content
 
 
 def test_init_refuses_existing_without_force(tmp_path: Path) -> None:
@@ -25,7 +38,7 @@ def test_init_overwrites_with_force(tmp_path: Path) -> None:
 
     init_project(tmp_path, force=True)
 
-    assert "cover:" in (tmp_path / "content.yaml").read_text()
+    assert "existing" not in (tmp_path / "content.yaml").read_text()
 
 
 def test_cli_build_returns_zero_on_success(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:

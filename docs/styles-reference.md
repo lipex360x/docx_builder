@@ -178,19 +178,39 @@ footer:
   font_size: 9pt
 ```
 
+## Page numbering
+
+Three top-level modes, configured outside the `sections:` list:
+
+```yaml
+# Mode A — disable everywhere
+page_numbers: false
+
+# Mode B — front_matter unnumbered, sections numbered
+front_matter: [...]
+sections: [...]
+
+# Mode C — every page numbered (default; no extra config)
+sections: [...]
+```
+
+The legacy `hide_page_counter: true` flag on individual section items still works for backward compatibility. New documents should use `front_matter:` instead — it is declarative, free of repetition, and surfaces intent at the top of the file.
+
 ## Section type reference
 
 | `call` | Required fields | Optional fields | Style key consumed |
 |---|---|---|---|
-| `h1`, `h2`, `h3` | `text` | `style`, `hide_page_counter` | `h1` / `h2` / `h3` |
-| `body` | `text` | `style`, `hide_page_counter` | `body` |
-| `bullet` | `text` | `style`, `hide_page_counter` | `bullet` |
-| `bold_lead` | `bold`, `rest` | `style`, `hide_page_counter` | `bold_lead` |
-| `reference` | `text` | `style`, `hide_page_counter` | `reference` |
-| `page_break` | — | `hide_page_counter` | — |
-| `toc` | — | `levels`, `hide_page_counter` | — |
-| `figure` | `filename`, `label`, `caption` | `width`, `style`, `caption_style`, `hide_page_counter` | `figure`, `figure_caption` |
-| `figure_pair` | `filename1`, `filename2`, `label`, `caption` | `width1`, `width2`, `style`, `caption_style`, `hide_page_counter` | `figure_pair`, `figure_caption` |
+| `h1`, `h2`, `h3` | `text` | `style` | `h1` / `h2` / `h3` |
+| `body` | `text` | `style` | `body` |
+| `bullet` | `text` | `style` | `bullet` |
+| `bold_lead` | `bold`, `rest` | `style` | `bold_lead` |
+| `reference` | `text` | `style` | `reference` |
+| `page_break` | — | — | — |
+| `toc` | — | `levels` | — |
+| `figure` | `filename`, `label`, `caption` | `width`, `style`, `caption_style` | `figure`, `figure_caption` |
+| `figure_pair` | `filename1`, `filename2`, `label`, `caption` | `width1`, `width2`, `style`, `caption_style` | `figure_pair`, `figure_caption` |
+
+Any section type may appear in either `front_matter` or `sections`.
 
 ### Inline overrides
 

@@ -9,64 +9,84 @@ This skill helps you operate the `docx_builder` CLI tool efficiently and correct
 
 ## What docx_builder does
 
-It takes a `content.yaml` describing a document (cover, sections, styles) and produces a `.docx` file. Optionally loads a `.docx` cover template; falls back to a blank document if no template is configured.
+It takes a `content.yaml` describing a document (optional cover, optional front matter, sections, styles) and produces a `.docx`. Cover template is optional — when omitted, a blank `Document` is used.
 
-Repository: this project. Installable globally via `uv tool install`.
+Repo: <https://github.com/lipex360x/docx_builder>. Installable globally via `uv tool install`.
 
 ## When to use this skill
 
 - The user wants to create or regenerate a `.docx` from a YAML description.
-- The user is editing `content.yaml` (cover, sections, styles).
+- The user is editing `content.yaml` (cover, front_matter, sections, styles).
 - The user asks about heading sizes, bullet glyphs, footer format, page numbers, image captions, TOC, or any visual aspect of the generated `.docx`.
-- The user mentions consumer projects under `projecs/computing/`.
 
 If the request is **not** about generating/editing docs through this tool, do not invoke this skill.
 
 ## Core workflow
 
 ```bash
-docx_builder init             # scaffold content.yaml + images/ in cwd
+docx_builder init             # writes a marker content.yaml in cwd (3-line comment, nothing else)
 docx_builder build            # build using content.yaml in cwd
 docx_builder build /path/dir  # build from another directory
 docx_builder build --output Custom.docx
 docx_builder build --template-dir ~/templates
 ```
 
+`init` does NOT scaffold a placeholder document. It only writes a tiny marker file pointing back at this skill. You (the assistant) are expected to author the real `content.yaml` based on what the user actually wants to build — CV, report, manual, paper, contract, fiction — each gets a tailored YAML.
+
 After `build`, open the `.docx` in Word, press `Cmd+A` then `F9` to update fields (fills the TOC).
 
 ## content.yaml structure
 
-```yaml
-cover:                                 # optional — when omitted, no cover template loaded
-  template: ../templates/MyCover.docx  # relative to project dir, or absolute, or bare filename (looks in template_dir)
-  output: "Report_{number}.docx"       # filename pattern; placeholders are any cover string field
-  number: "2026001"
-  rows:                                # one entry per row of the cover table, in order
-    - Module
-    - Title
-    - Lecturer
-    - Student
-    - "2026001"
-    - "Submission date"
-    - "Creation date"
-  ai_declaration: |-                   # optional — appended as a bold-prefixed paragraph
-    Declare AI usage here.
+Every top-level block is optional. The minimal valid `content.yaml` is empty (produces a blank document). Realistic shapes:
 
-styles:                                # optional — overrides built-in defaults
+### Shape A — simple document (no cover, no page numbers)
+
+Best for CVs, one-pagers, fliers, anything that doesn't need a cover sheet or page numbering.
+
+```yaml
+page_numbers: false
+
+styles:
+  h1: { font_size: 18pt, color: "#003366" }
+  body: { align: justify }
+
+sections:
+  - call: h1
+    text: Jane Doe
+  - call: body
+    text: Software engineer with 10 years of experience.
+  - call: h2
+    text: Experience
+  - call: bullet
+    text: Senior engineer at Acme (2022–present)
+```
+
+### Shape B — report with cover and TOC
+
+Best for academic submissions, formal reports, anything with a cover page followed by paginated content.
+
+```yaml
+cover:
+  template: ../templates/MyCover.docx     # relative to project dir, or absolute, or bare filename
+  output: "Report_{number}.docx"           # placeholders: any string field under cover
+  number: "0001"
+  rows:                                    # one entry per row of the cover table, in order
+    - Document Title
+    - Author
+    - "0001"
+    - "Submission Date"
+
+styles:
   h1:     { font_size: 16pt, color: "#003366" }
   body:   { align: justify }
-  bullet: { glyph: "→ " }
   footer: { format: "Page {page} of {total}" }
 
-sections:                              # ordered list of section calls
+front_matter:                              # rendered first; no page numbers on these pages
   - call: page_break
-    hide_page_counter: true
-
   - call: toc
     levels: 1-2
 
-  - call: page_break
-
+sections:                                  # rendered after; page numbers start here
   - call: h1
     text: Introduction
 
@@ -80,19 +100,37 @@ sections:                              # ordered list of section calls
     width: 5in
 ```
 
+### Shape C — fully paginated document
+
+If you don't need a cover and you want page numbers on every section, just use `sections:` alone. No `front_matter`, no `page_numbers: false`. The footer appears on every page.
+
 ## Section types — complete list
 
 | `call` | Required fields | Optional fields |
 |---|---|---|
-| `page_break` | — | `hide_page_counter` |
-| `toc` | — | `levels` (default `1-2`), `hide_page_counter` |
-| `h1` / `h2` / `h3` | `text` | `style`, `hide_page_counter` |
-| `body` | `text` | `style`, `hide_page_counter` |
-| `bullet` | `text` | `style`, `hide_page_counter` |
-| `bold_lead` | `bold`, `rest` | `style`, `hide_page_counter` |
-| `reference` | `text` | `style`, `hide_page_counter` |
-| `figure` | `filename`, `label`, `caption` | `width`, `style`, `caption_style`, `hide_page_counter` |
-| `figure_pair` | `filename1`, `filename2`, `label`, `caption` | `width1`, `width2`, `style`, `caption_style`, `hide_page_counter` |
+| `page_break` | — | — |
+| `toc` | — | `levels` (default `1-2`) |
+| `h1` / `h2` / `h3` | `text` | `style` |
+| `body` | `text` | `style` |
+| `bullet` | `text` | `style` |
+| `bold_lead` | `bold`, `rest` | `style` |
+| `reference` | `text` | `style` |
+| `figure` | `filename`, `label`, `caption` | `width`, `style`, `caption_style` |
+| `figure_pair` | `filename1`, `filename2`, `label`, `caption` | `width1`, `width2`, `style`, `caption_style` |
+
+Any section may appear in either `front_matter` or `sections`. The distinction is only about page numbering.
+
+## Page numbering — three modes
+
+| Goal | YAML |
+|---|---|
+| No page numbers anywhere | `page_numbers: false` (top-level) |
+| Cover/TOC unnumbered, content numbered | Put cover/TOC items in `front_matter:`; content in `sections:` |
+| Every page numbered | Use `sections:` only (no `front_matter`, no `page_numbers: false`) |
+
+### Legacy: `hide_page_counter`
+
+The flag `hide_page_counter: true` on individual section items still works and is supported for backward compatibility. New documents should prefer the cleaner `front_matter` block — it makes intent explicit and avoids repetition.
 
 ## Styles — cascade and editing
 
@@ -115,7 +153,7 @@ styles:
 
 # One-off override on a single heading
 - call: h1
-  text: Cover-page-style title
+  text: Hero title
   style: { font_size: 28pt, align: center }
 
 # Different bullet marker
@@ -129,24 +167,6 @@ styles:
 # Justified body, sans-serif font
 styles:
   body: { font_family: "Arial", align: justify }
-```
-
-## Page numbering and `hide_page_counter`
-
-Page numbers go on every section by default. To suppress them on early pages (cover, TOC, blank intro), set `hide_page_counter: true` on those sections. The renderer inserts a continuous section break at the first section without the flag — sections before the break have no footer, sections after show `page / total`.
-
-```yaml
-sections:
-  - call: page_break
-    hide_page_counter: true     # cover: no footer
-
-  - call: toc
-    hide_page_counter: true     # TOC: no footer
-
-  - call: page_break            # no flag — footer starts here onward
-
-  - call: h1
-    text: Introduction          # this page shows "3 / N"
 ```
 
 ## Common errors and how to fix them
@@ -175,12 +195,18 @@ The tool resolves the project from `cwd` (or the positional `DIR` argument). The
 2. Relative path with separators → resolved relative to project dir (e.g. `../templates/Cover.docx`)
 3. Bare filename → looks in `--template-dir`, then in the package's bundled templates (`docx_builder/templates/`)
 
-The bundled templates intentionally do **not** contain assignment-specific covers — those live with the consumer projects (e.g. `projecs/computing/ca1/templates/CA Cover Sheet.docx`).
+The bundled templates intentionally do **not** contain assignment-specific covers — they ship `content.skeleton.yaml` and `default_styles.yaml` only. Provide your own cover `.docx` via `cover.template` or `--template-dir`.
 
 ## Updating this skill
 
-Reinstall after pulling new versions:
+The skill source lives in this repo at `docx_builder/skill/SKILL.md`. The global copy at `~/www/claude/.brain/skills/docx_builder/SKILL.md` is a real file that must be re-synced after edits:
 
 ```bash
-docx_builder install skill --force   # overwrite the local copy
+cp docx_builder/skill/SKILL.md ~/www/claude/.brain/skills/docx_builder/SKILL.md
+```
+
+Or for a local-project install:
+
+```bash
+docx_builder install skill --scope local --force
 ```

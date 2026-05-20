@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Top-level `page_numbers: false` toggle in `content.yaml` — disables the footer counter across every page. Use for CVs, one-pagers, and any document without pagination.
+- Top-level `front_matter:` block — sections rendered first, without page numbers, for cover sheets and TOCs. The footer starts on `sections:`. Replaces the per-section `hide_page_counter` flag with a declarative, repetition-free alternative.
+
 ### Changed
+
+- `docx_builder init` now writes a 3-line marker `content.yaml` (just a comment pointing at the docs and skill). No more CCT-flavoured placeholder (Module/Lecturer/Student/References/AI declaration). Real content is authored on demand by the user or by Claude with the `docx_builder` skill loaded.
+- `init` no longer creates an empty `images/` directory. Add images when you reference them.
 
 - Refactor identifiers to satisfy dev-quality v0.11.0: rename single/two-character locals (`p`→`paragraph`, `t`→`text`, `exc`→`exception`, `pf`→`paragraph_format`, `err`→`error`) and internal heading helpers (`h1`/`h2`/`h3`→`heading_1`/`heading_2`/`heading_3`). YAML `call:` values are unchanged (`h1`/`h2`/`h3` still accepted).
 - Strip inline `# noqa: SLF001` comments in favour of `per-file-ignores` entries in `pyproject.toml`. dev-quality forbids inline noqa.
