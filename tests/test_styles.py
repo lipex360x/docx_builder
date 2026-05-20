@@ -99,7 +99,7 @@ def test_build_applies_global_h1_override(tmp_path: Path) -> None:
     build(str(tmp_path))
 
     document = Document(str(tmp_path / "Report.docx"))
-    heading = next(p for p in document.paragraphs if p.text == "Big red title")
+    heading = next(paragraph for paragraph in document.paragraphs if paragraph.text == "Big red title")
     run = heading.runs[0]
     assert run.font.size == Pt(20)
     assert run.font.color.rgb == RGBColor(0xFF, 0x00, 0x00)
@@ -119,8 +119,8 @@ def test_build_inline_override_per_section(tmp_path: Path) -> None:
     build(str(tmp_path))
 
     document = Document(str(tmp_path / "Report.docx"))
-    normal = next(p for p in document.paragraphs if p.text == "Normal")
-    special = next(p for p in document.paragraphs if p.text == "Special")
+    normal = next(paragraph for paragraph in document.paragraphs if paragraph.text == "Normal")
+    special = next(paragraph for paragraph in document.paragraphs if paragraph.text == "Special")
     assert normal.runs[0].font.size == Pt(14)
     assert special.runs[0].font.size == Pt(22)
     assert special.runs[0].font.color.rgb == RGBColor(0x00, 0x33, 0x66)
@@ -134,7 +134,7 @@ def test_build_no_styles_block_keeps_defaults(tmp_path: Path) -> None:
     build(str(tmp_path))
 
     document = Document(str(tmp_path / "Report.docx"))
-    heading = next(p for p in document.paragraphs if p.text == "Default H1")
+    heading = next(paragraph for paragraph in document.paragraphs if paragraph.text == "Default H1")
     assert heading.runs[0].font.size == Pt(14)
     assert heading.runs[0].bold is True
 
@@ -150,5 +150,5 @@ def test_build_bullet_glyph_override(tmp_path: Path) -> None:
     build(str(tmp_path))
 
     document = Document(str(tmp_path / "Report.docx"))
-    bullet_paragraph = next(p for p in document.paragraphs if "Custom marker" in p.text)
+    bullet_paragraph = next(paragraph for paragraph in document.paragraphs if "Custom marker" in paragraph.text)
     assert "→ Custom marker" in bullet_paragraph.text

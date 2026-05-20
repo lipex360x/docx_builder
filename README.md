@@ -248,12 +248,23 @@ docx_builder build [DIR] [--output FILE] [--template-dir DIR]
 
 ## Development
 
+After cloning, bootstrap once:
+
 ```bash
 uv sync
+pre-commit install                       # ← activates dev-quality on every commit
+```
+
+Then standard workflow:
+
+```bash
 uv run pytest
 uv run ruff check docx_builder tests
 uv run mypy docx_builder
+pre-commit run --all-files               # run all dev-quality checkers manually
 ```
+
+The `pre-commit install` step writes `.git/hooks/pre-commit`. Without it, the hook config in `.pre-commit-config.yaml` is inert and `git commit` bypasses every quality check.
 
 All features follow **Red → Green → Refactor** TDD. Write a failing test first, implement the minimum code to pass it, then clean up.
 

@@ -11,14 +11,14 @@ _FOOTER_STYLE = StyleResolver().resolve("footer")
 def test_single_section_has_page_field() -> None:
     document = Document()
     add_page_numbers(document, style=_FOOTER_STYLE)
-    footer_xml = document.sections[0].footer._element.xml  # noqa: SLF001
+    footer_xml = document.sections[0].footer._element.xml
     assert "PAGE" in footer_xml
 
 
 def test_single_section_has_num_pages_field() -> None:
     document = Document()
     add_page_numbers(document, style=_FOOTER_STYLE)
-    footer_xml = document.sections[0].footer._element.xml  # noqa: SLF001
+    footer_xml = document.sections[0].footer._element.xml
     assert "NUMPAGES" in footer_xml
 
 
@@ -39,7 +39,7 @@ def test_skip_cover_sections_cover_has_no_page_field() -> None:
     document = Document()
     document.add_section()
     add_page_numbers(document, style=_FOOTER_STYLE, skip_cover_sections=True)
-    footer_xml = document.sections[0].footer._element.xml  # noqa: SLF001
+    footer_xml = document.sections[0].footer._element.xml
     assert "PAGE" not in footer_xml
 
 
@@ -47,7 +47,7 @@ def test_skip_cover_sections_content_has_page_field() -> None:
     document = Document()
     document.add_section()
     add_page_numbers(document, style=_FOOTER_STYLE, skip_cover_sections=True)
-    footer_xml = document.sections[1].footer._element.xml  # noqa: SLF001
+    footer_xml = document.sections[1].footer._element.xml
     assert "PAGE" in footer_xml
 
 
@@ -55,7 +55,7 @@ def test_skip_cover_sections_content_has_num_pages_field() -> None:
     document = Document()
     document.add_section()
     add_page_numbers(document, style=_FOOTER_STYLE, skip_cover_sections=True)
-    footer_xml = document.sections[1].footer._element.xml  # noqa: SLF001
+    footer_xml = document.sections[1].footer._element.xml
     assert "NUMPAGES" in footer_xml
 
 
@@ -70,7 +70,7 @@ def test_skip_cover_sections_cover_footer_is_empty() -> None:
     document = Document()
     document.add_section()
     add_page_numbers(document, style=_FOOTER_STYLE, skip_cover_sections=True)
-    footer_xml = document.sections[0].footer._element.xml  # noqa: SLF001
+    footer_xml = document.sections[0].footer._element.xml
     assert "NUMPAGES" not in footer_xml
 
 
@@ -80,5 +80,5 @@ def test_multiple_content_sections_all_have_footer() -> None:
     document.add_section()
     add_page_numbers(document, style=_FOOTER_STYLE, skip_cover_sections=True)
     for section in document.sections[1:]:
-        footer_xml = section.footer._element.xml  # noqa: SLF001
+        footer_xml = section.footer._element.xml
         assert "PAGE" in footer_xml

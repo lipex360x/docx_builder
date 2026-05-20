@@ -17,24 +17,24 @@ def build_summary(document: Document, levels: str = "1-2") -> None:
 
     begin = OxmlElement("w:fldChar")
     begin.set(qn("w:fldCharType"), "begin")
-    run._r.append(begin)  # noqa: SLF001
+    run._r.append(begin)
 
     instr = OxmlElement("w:instrText")
     instr.set(qn("xml:space"), "preserve")
     instr.text = f' TOC \\o "{levels}" \\h \\z \\u '
-    run._r.append(instr)  # noqa: SLF001
+    run._r.append(instr)
 
     separate = OxmlElement("w:fldChar")
     separate.set(qn("w:fldCharType"), "separate")
-    run._r.append(separate)  # noqa: SLF001
+    run._r.append(separate)
 
     placeholder = OxmlElement("w:t")
     placeholder.text = "Right-click here and select 'Update Field' to generate the table of contents."
-    run._r.append(placeholder)  # noqa: SLF001
+    run._r.append(placeholder)
 
     end = OxmlElement("w:fldChar")
     end.set(qn("w:fldCharType"), "end")
-    run._r.append(end)  # noqa: SLF001
+    run._r.append(end)
 
     note_paragraph = document.add_paragraph()
     note_paragraph.paragraph_format.space_before = Pt(12)

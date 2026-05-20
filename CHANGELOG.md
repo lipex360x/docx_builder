@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Refactor identifiers to satisfy dev-quality v0.11.0: rename single/two-character locals (`p`→`paragraph`, `t`→`text`, `exc`→`exception`, `pf`→`paragraph_format`, `err`→`error`) and internal heading helpers (`h1`/`h2`/`h3`→`heading_1`/`heading_2`/`heading_3`). YAML `call:` values are unchanged (`h1`/`h2`/`h3` still accepted).
+- Strip inline `# noqa: SLF001` comments in favour of `per-file-ignores` entries in `pyproject.toml`. dev-quality forbids inline noqa.
+- Document the `pre-commit install` bootstrap step in `README.md` so cloned repos activate the hook before the first commit.
+
 ### Planned
 
 - `docx_builder export pdf [DIR]` — convert generated `.docx` to PDF via Microsoft Word + JXA (macOS-only, requires Word).

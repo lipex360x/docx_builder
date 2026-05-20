@@ -120,7 +120,7 @@ def test_fill_cover_with_ai_declaration() -> None:
     document = Document()
     document.add_table(rows=1, cols=2)
     fill_cover(document, {"rows": ["X"], "ai_declaration": "I declare AI."})
-    texts = [p.text for p in document.paragraphs]
+    texts = [paragraph.text for paragraph in document.paragraphs]
     assert any("I declare AI." in text for text in texts)
 
 
@@ -128,7 +128,7 @@ def test_fill_cover_without_ai_declaration() -> None:
     document = Document()
     document.add_table(rows=1, cols=2)
     fill_cover(document, {"rows": ["X"]})
-    texts = [p.text for p in document.paragraphs]
+    texts = [paragraph.text for paragraph in document.paragraphs]
     assert not any("AI Use Declaration" in text for text in texts)
 
 
@@ -136,28 +136,30 @@ def test_fill_cover_ai_declaration_has_bold_prefix() -> None:
     document = Document()
     document.add_table(rows=7, cols=2)
     fill_cover(document, _COVER_DATA)
-    declaration_paragraph = next(p for p in document.paragraphs if "AI Use Declaration" in p.text)
+    declaration_paragraph = next(
+        paragraph for paragraph in document.paragraphs if "AI Use Declaration" in paragraph.text
+    )
     assert declaration_paragraph.runs[0].bold is True
 
 
 def test_render_sections_h1() -> None:
     document = Document()
     render_sections(document, [{"call": "h1", "text": "My Heading"}], images_dir="/nonexistent", resolver=_RESOLVER)
-    texts = [p.text for p in document.paragraphs]
+    texts = [paragraph.text for paragraph in document.paragraphs]
     assert "My Heading" in texts
 
 
 def test_render_sections_h2() -> None:
     document = Document()
     render_sections(document, [{"call": "h2", "text": "Sub heading"}], images_dir="/nonexistent", resolver=_RESOLVER)
-    texts = [p.text for p in document.paragraphs]
+    texts = [paragraph.text for paragraph in document.paragraphs]
     assert "Sub heading" in texts
 
 
 def test_render_sections_h3() -> None:
     document = Document()
     render_sections(document, [{"call": "h3", "text": "Sub sub"}], images_dir="/nonexistent", resolver=_RESOLVER)
-    texts = [p.text for p in document.paragraphs]
+    texts = [paragraph.text for paragraph in document.paragraphs]
     assert "Sub sub" in texts
 
 
@@ -169,15 +171,15 @@ def test_render_sections_body() -> None:
         images_dir="/nonexistent",
         resolver=_RESOLVER,
     )
-    texts = [p.text for p in document.paragraphs]
+    texts = [paragraph.text for paragraph in document.paragraphs]
     assert "Some body text." in texts
 
 
 def test_render_sections_bullet() -> None:
     document = Document()
     render_sections(document, [{"call": "bullet", "text": "Item one"}], images_dir="/nonexistent", resolver=_RESOLVER)
-    texts = [p.text for p in document.paragraphs]
-    assert any("Item one" in t for t in texts)
+    texts = [paragraph.text for paragraph in document.paragraphs]
+    assert any("Item one" in text for text in texts)
 
 
 def test_render_sections_bold_lead() -> None:
@@ -185,10 +187,11 @@ def test_render_sections_bold_lead() -> None:
     render_sections(
         document,
         [{"call": "bold_lead", "bold": "Key:", "rest": " explanation"}],
-        images_dir="/nonexistent", resolver=_RESOLVER,
+        images_dir="/nonexistent",
+        resolver=_RESOLVER,
     )
-    texts = [p.text for p in document.paragraphs]
-    assert any("Key:" in t for t in texts)
+    texts = [paragraph.text for paragraph in document.paragraphs]
+    assert any("Key:" in text for text in texts)
 
 
 def test_render_sections_reference() -> None:
@@ -199,14 +202,14 @@ def test_render_sections_reference() -> None:
         images_dir="/nonexistent",
         resolver=_RESOLVER,
     )
-    texts = [p.text for p in document.paragraphs]
+    texts = [paragraph.text for paragraph in document.paragraphs]
     assert "Smith (2020)" in texts
 
 
 def test_render_sections_page_break() -> None:
     document = Document()
     render_sections(document, [{"call": "page_break"}], images_dir="/nonexistent", resolver=_RESOLVER)
-    all_xml = " ".join(p._p.xml for p in document.paragraphs)  # noqa: SLF001
+    all_xml = " ".join(paragraph._p.xml for paragraph in document.paragraphs)
     assert "w:br" in all_xml
 
 
@@ -215,10 +218,11 @@ def test_render_sections_figure_missing_file() -> None:
     render_sections(
         document,
         [{"call": "figure", "filename": "missing.png", "label": "Figure 1.1", "caption": "Cap"}],
-        images_dir="/nonexistent_xyz", resolver=_RESOLVER,
+        images_dir="/nonexistent_xyz",
+        resolver=_RESOLVER,
     )
-    texts = [p.text for p in document.paragraphs]
-    assert any("missing.png" in t for t in texts)
+    texts = [paragraph.text for paragraph in document.paragraphs]
+    assert any("missing.png" in text for text in texts)
 
 
 def test_render_sections_figure_existing_file() -> None:
@@ -230,10 +234,11 @@ def test_render_sections_figure_existing_file() -> None:
         render_sections(
             document,
             [{"call": "figure", "filename": "test.png", "label": "Figure 1.1", "caption": "Cap"}],
-            images_dir=tmpdir, resolver=_RESOLVER,
+            images_dir=tmpdir,
+            resolver=_RESOLVER,
         )
-        texts = [p.text for p in document.paragraphs]
-        assert any("Figure 1.1" in t for t in texts)
+        texts = [paragraph.text for paragraph in document.paragraphs]
+        assert any("Figure 1.1" in text for text in texts)
 
 
 def test_render_sections_figure_pair_missing_files() -> None:
@@ -249,10 +254,11 @@ def test_render_sections_figure_pair_missing_files() -> None:
                 "caption": "Two images",
             }
         ],
-        images_dir="/nonexistent_xyz", resolver=_RESOLVER,
+        images_dir="/nonexistent_xyz",
+        resolver=_RESOLVER,
     )
-    texts = [p.text for p in document.paragraphs]
-    assert any("Figure 1.2" in t for t in texts)
+    texts = [paragraph.text for paragraph in document.paragraphs]
+    assert any("Figure 1.2" in text for text in texts)
 
 
 def test_render_sections_multiple_calls() -> None:
@@ -264,9 +270,10 @@ def test_render_sections_multiple_calls() -> None:
             {"call": "body", "text": "Content"},
             {"call": "reference", "text": "Ref (2020)"},
         ],
-        images_dir="/nonexistent", resolver=_RESOLVER,
+        images_dir="/nonexistent",
+        resolver=_RESOLVER,
     )
-    texts = [p.text for p in document.paragraphs]
+    texts = [paragraph.text for paragraph in document.paragraphs]
     assert "Title" in texts
     assert "Content" in texts
     assert "Ref (2020)" in texts
@@ -281,14 +288,14 @@ def test_render_sections_unknown_call_raises() -> None:
 def test_render_sections_toc_inserts_toc_field() -> None:
     document = Document()
     render_sections(document, [{"call": "toc", "levels": "1-2"}], images_dir="/nonexistent", resolver=_RESOLVER)
-    all_xml = " ".join(p._p.xml for p in document.paragraphs)  # noqa: SLF001
+    all_xml = " ".join(paragraph._p.xml for paragraph in document.paragraphs)
     assert "TOC" in all_xml
 
 
 def test_render_sections_toc_default_levels() -> None:
     document = Document()
     render_sections(document, [{"call": "toc"}], images_dir="/nonexistent", resolver=_RESOLVER)
-    all_xml = " ".join(p._p.xml for p in document.paragraphs)  # noqa: SLF001
+    all_xml = " ".join(paragraph._p.xml for paragraph in document.paragraphs)
     assert "TOC" in all_xml
 
 
@@ -301,7 +308,8 @@ def test_render_sections_hide_page_counter_creates_section_break() -> None:
             {"call": "page_break", "hide_page_counter": True},
             {"call": "h1", "text": "Content"},
         ],
-        images_dir="/nonexistent", resolver=_RESOLVER,
+        images_dir="/nonexistent",
+        resolver=_RESOLVER,
     )
     assert len(document.sections) == initial_sections + 1
 
@@ -315,7 +323,8 @@ def test_render_sections_all_hidden_no_section_break() -> None:
             {"call": "h1", "text": "Title", "hide_page_counter": True},
             {"call": "body", "text": "Body", "hide_page_counter": True},
         ],
-        images_dir="/nonexistent", resolver=_RESOLVER,
+        images_dir="/nonexistent",
+        resolver=_RESOLVER,
     )
     assert len(document.sections) == initial_sections
 
@@ -326,7 +335,8 @@ def test_render_sections_no_hidden_no_section_break() -> None:
     render_sections(
         document,
         [{"call": "h1", "text": "Title"}, {"call": "body", "text": "Body"}],
-        images_dir="/nonexistent", resolver=_RESOLVER,
+        images_dir="/nonexistent",
+        resolver=_RESOLVER,
     )
     assert len(document.sections) == initial_sections
 
@@ -340,6 +350,7 @@ def test_render_sections_section_break_inserted_once() -> None:
             {"call": "h1", "text": "Visible 1"},
             {"call": "h1", "text": "Visible 2"},
         ],
-        images_dir="/nonexistent", resolver=_RESOLVER,
+        images_dir="/nonexistent",
+        resolver=_RESOLVER,
     )
     assert len(document.sections) == 2

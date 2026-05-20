@@ -54,11 +54,7 @@ def _resolve_output_path(project_dir: Path, cover: dict[str, Any], override: str
     pattern_value = cover.get("output") if cover else None
     pattern = str(pattern_value) if pattern_value else _DEFAULT_OUTPUT_PATTERN
 
-    fields = {
-        key: str(value)
-        for key, value in (cover or {}).items()
-        if isinstance(value, str | int)
-    }
+    fields = {key: str(value) for key, value in (cover or {}).items() if isinstance(value, str | int)}
 
     try:
         filename = pattern.format(**fields)

@@ -114,7 +114,7 @@ class StyleResolver:
 
 
 def apply_paragraph_style(paragraph: Any, style: dict[str, Any]) -> None:
-    pf = paragraph.paragraph_format
+    paragraph_format = paragraph.paragraph_format
 
     align = parse_align(style.get("align"))
     if align is not None:
@@ -122,19 +122,19 @@ def apply_paragraph_style(paragraph: Any, style: dict[str, Any]) -> None:
 
     space_before = parse_length_pt(style.get("space_before"))
     if space_before is not None:
-        pf.space_before = space_before
+        paragraph_format.space_before = space_before
 
     space_after = parse_length_pt(style.get("space_after"))
     if space_after is not None:
-        pf.space_after = space_after
+        paragraph_format.space_after = space_after
 
     indent_left = parse_length_inches(style.get("indent_left"))
     if indent_left is not None:
-        pf.left_indent = indent_left
+        paragraph_format.left_indent = indent_left
 
     indent_first = parse_length_inches(style.get("indent_first_line"))
     if indent_first is not None:
-        pf.first_line_indent = indent_first
+        paragraph_format.first_line_indent = indent_first
 
 
 def apply_run_style(run: Any, style: dict[str, Any]) -> None:

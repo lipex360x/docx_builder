@@ -20,12 +20,12 @@ def test_build_summary_title_is_bold() -> None:
 def test_build_summary_default_levels_in_xml() -> None:
     document = Document()
     build_summary(document)
-    all_xml = " ".join(paragraph._p.xml for paragraph in document.paragraphs)  # noqa: SLF001
+    all_xml = " ".join(paragraph._p.xml for paragraph in document.paragraphs)
     assert "1-2" in all_xml
 
 
 def test_build_summary_custom_levels_in_xml() -> None:
     document = Document()
     build_summary(document, levels="1-3")
-    all_xml = " ".join(paragraph._p.xml for paragraph in document.paragraphs)  # noqa: SLF001
+    all_xml = " ".join(paragraph._p.xml for paragraph in document.paragraphs)
     assert "1-3" in all_xml

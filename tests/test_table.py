@@ -8,7 +8,7 @@ def test_remove_table_borders_adds_borders_element() -> None:
     document = Document()
     table = document.add_table(rows=1, cols=2)
     remove_table_borders(table)
-    tbl_xml = table._tbl  # noqa: SLF001
+    tbl_xml = table._tbl
     table_properties = tbl_xml.find(qn("w:tblPr"))
     assert table_properties is not None
     table_borders = table_properties.find(qn("w:tblBorders"))
@@ -19,7 +19,7 @@ def test_remove_table_borders_all_sides_none() -> None:
     document = Document()
     table = document.add_table(rows=1, cols=2)
     remove_table_borders(table)
-    tbl_xml = table._tbl  # noqa: SLF001
+    tbl_xml = table._tbl
     table_properties = tbl_xml.find(qn("w:tblPr"))
     assert table_properties is not None
     table_borders = table_properties.find(qn("w:tblBorders"))

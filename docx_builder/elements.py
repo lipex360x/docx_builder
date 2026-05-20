@@ -15,7 +15,7 @@ def page_break(document: Document) -> None:
     run = paragraph.add_run()
     break_element = OxmlElement("w:br")
     break_element.set(qn("w:type"), "page")
-    run._r.append(break_element)  # noqa: SLF001
+    run._r.append(break_element)
 
 
 def _heading(document: Document, text: str, level: int, style: dict[str, Any]) -> Paragraph:
@@ -26,15 +26,15 @@ def _heading(document: Document, text: str, level: int, style: dict[str, Any]) -
     return paragraph
 
 
-def h1(document: Document, text: str, style: dict[str, Any]) -> Paragraph:
+def heading_1(document: Document, text: str, style: dict[str, Any]) -> Paragraph:
     return _heading(document, text, 1, style)
 
 
-def h2(document: Document, text: str, style: dict[str, Any]) -> Paragraph:
+def heading_2(document: Document, text: str, style: dict[str, Any]) -> Paragraph:
     return _heading(document, text, 2, style)
 
 
-def h3(document: Document, text: str, style: dict[str, Any]) -> Paragraph:
+def heading_3(document: Document, text: str, style: dict[str, Any]) -> Paragraph:
     return _heading(document, text, 3, style)
 
 

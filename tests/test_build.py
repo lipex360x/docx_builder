@@ -143,7 +143,7 @@ def test_build_no_hidden_sections_has_page_numbers_everywhere(tmp_path: Path, co
     build(str(tmp_path), template_dir=str(cover_dir))
 
     output_document = Document(str(tmp_path / "Report_9999999.docx"))
-    footer_xml = output_document.sections[0].footer._element.xml  # noqa: SLF001
+    footer_xml = output_document.sections[0].footer._element.xml
     assert "PAGE" in footer_xml
 
 
@@ -163,7 +163,7 @@ def test_build_hide_page_counter_on_sections_suppresses_cover_footer(tmp_path: P
 
     output_document = Document(str(tmp_path / "Report_9999999.docx"))
     assert len(output_document.sections) >= 2
-    cover_footer_xml = output_document.sections[0].footer._element.xml  # noqa: SLF001
+    cover_footer_xml = output_document.sections[0].footer._element.xml
     assert "PAGE" not in cover_footer_xml
-    content_footer_xml = output_document.sections[1].footer._element.xml  # noqa: SLF001
+    content_footer_xml = output_document.sections[1].footer._element.xml
     assert "PAGE" in content_footer_xml

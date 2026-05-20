@@ -82,7 +82,7 @@ def _add_footer_to_section(section: Section, style: dict[str, Any]) -> None:
     template = str(style.get("format", "{page} / {total}"))
     middle = _parse_footer_separator(template)
 
-    paragraph_element = paragraph._p  # noqa: SLF001
+    paragraph_element = paragraph._p
     paragraph_element.append(_make_field_run("PAGE", size_half))
     paragraph_element.append(_make_separator_run(middle, size_half))
     paragraph_element.append(_make_field_run("NUMPAGES", size_half))

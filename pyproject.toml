@@ -39,8 +39,11 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RET", "C90", "S", "N", "PLR"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S603", "S607", "S108", "PLR2004", "SLF001"]
+"docx_builder/elements.py" = ["SLF001"]
 "docx_builder/figure.py" = ["PLR0913"]
-"scripts/**" = ["S", "PLR", "C901", "I001"]
+"docx_builder/pagination.py" = ["SLF001"]
+"docx_builder/summary.py" = ["SLF001"]
+"docx_builder/table.py" = ["SLF001"]
 
 [tool.mypy]
 strict = true

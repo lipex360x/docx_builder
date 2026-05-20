@@ -7,16 +7,16 @@ from docx.document import Document
 from docx.enum.section import WD_SECTION
 from docx.shared import Pt
 
-from docx_builder.elements import body, bold_lead, bullet, h1, h2, h3, page_break, reference
+from docx_builder.elements import body, bold_lead, bullet, heading_1, heading_2, heading_3, page_break, reference
 from docx_builder.figure import figure as _figure_base
 from docx_builder.figure import figure_pair as _figure_pair_base
 from docx_builder.styles import StyleResolver
 from docx_builder.summary import build_summary
 
 _TEXT_DISPATCHERS = {
-    "h1": h1,
-    "h2": h2,
-    "h3": h3,
+    "h1": heading_1,
+    "h2": heading_2,
+    "h3": heading_3,
     "body": body,
     "bullet": bullet,
     "reference": reference,

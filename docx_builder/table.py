@@ -4,7 +4,7 @@ from docx.table import Table
 
 
 def remove_table_borders(table: Table) -> None:
-    tbl_xml = table._tbl  # noqa: SLF001
+    tbl_xml = table._tbl
     table_properties = tbl_xml.find(qn("w:tblPr"))
     if table_properties is None:
         table_properties = OxmlElement("w:tblPr")

@@ -42,8 +42,8 @@ def test_cli_build_missing_content_returns_error(tmp_path: Path, capsys: pytest.
     exit_code = main(["build", str(tmp_path)])
 
     assert exit_code == 1
-    err = capsys.readouterr().err
-    assert "content.yaml not found" in err
+    error = capsys.readouterr().err
+    assert "content.yaml not found" in error
 
 
 def test_cli_init_then_build(tmp_path: Path) -> None:

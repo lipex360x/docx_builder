@@ -63,8 +63,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "build":
         try:
             output_path = build(target, template_dir=args.template_dir, output_override=args.output)
-        except FileNotFoundError as exc:
-            print(f"error: {exc}", file=sys.stderr)
+        except FileNotFoundError as exception:
+            print(f"error: {exception}", file=sys.stderr)
             return 1
         print(f"Saved: {output_path}")
         return 0
@@ -72,8 +72,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "init":
         try:
             content_path = init_project(target, force=args.force)
-        except FileExistsError as exc:
-            print(f"error: {exc}", file=sys.stderr)
+        except FileExistsError as exception:
+            print(f"error: {exception}", file=sys.stderr)
             return 1
         print(f"Initialized: {content_path}")
         return 0
@@ -92,8 +92,8 @@ def _install_skill_command(scope_choice: str, force: bool) -> int:
         return 1
     try:
         installed_path = install_skill(scope=scope, force=force)
-    except FileExistsError as exc:
-        print(f"error: {exc}", file=sys.stderr)
+    except FileExistsError as exception:
+        print(f"error: {exception}", file=sys.stderr)
         return 1
     print(f"Installed: {installed_path}")
     return 0

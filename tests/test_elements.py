@@ -1,7 +1,7 @@
 from docx import Document
 from docx.shared import Inches, Pt
 
-from docx_builder.elements import body, bold_lead, bullet, h1, h2, h3, page_break, reference
+from docx_builder.elements import body, bold_lead, bullet, heading_1, heading_2, heading_3, page_break, reference
 from docx_builder.styles import StyleResolver
 
 resolver = StyleResolver()
@@ -16,21 +16,21 @@ def test_page_break_adds_paragraph() -> None:
 
 def test_h1_spacing() -> None:
     document = Document()
-    result = h1(document, "Heading One", resolver.resolve("h1"))
+    result = heading_1(document, "Heading One", resolver.resolve("h1"))
     assert result.paragraph_format.space_before == Pt(14)
     assert result.paragraph_format.space_after == Pt(6)
 
 
 def test_h1_run_font() -> None:
     document = Document()
-    result = h1(document, "Heading One", resolver.resolve("h1"))
+    result = heading_1(document, "Heading One", resolver.resolve("h1"))
     assert result.runs[0].font.size == Pt(14)
     assert result.runs[0].bold is True
 
 
 def test_h2_spacing_and_font() -> None:
     document = Document()
-    result = h2(document, "Heading Two", resolver.resolve("h2"))
+    result = heading_2(document, "Heading Two", resolver.resolve("h2"))
     assert result.paragraph_format.space_before == Pt(10)
     assert result.paragraph_format.space_after == Pt(3)
     assert result.runs[0].font.size == Pt(12)
@@ -39,7 +39,7 @@ def test_h2_spacing_and_font() -> None:
 
 def test_h3_spacing_and_font() -> None:
     document = Document()
-    result = h3(document, "Heading Three", resolver.resolve("h3"))
+    result = heading_3(document, "Heading Three", resolver.resolve("h3"))
     assert result.paragraph_format.space_before == Pt(8)
     assert result.paragraph_format.space_after == Pt(3)
     assert result.runs[0].font.size == Pt(11)
