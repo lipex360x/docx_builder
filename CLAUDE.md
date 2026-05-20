@@ -100,6 +100,18 @@ Workflow for releasing:
 4. Tag: `git tag -a vX.Y.Z -m "Release vX.Y.Z"`.
 5. Push: `git push origin main --tags`.
 
+### When NOT to tag
+
+Tags mark functional change. Skip the tag when a commit only:
+
+- renames internal identifiers (no public API change)
+- updates linter ignores, `.pre-commit-config.yaml`, or `.dev-quality.yaml`
+- adjusts docs, comments, CHANGELOG, or `CLAUDE.md`
+- reformats code (`ruff format`)
+- adds/edits tests without changing behaviour they exercise
+
+These are still committed and pushed, but the `[Unreleased]` section in `CHANGELOG.md` carries them until the next functional change earns a tag. SemVer rule of thumb: if a downstream user with the previous version installed cannot observe the change without reading the source, it does not deserve a tag.
+
 ## Roadmap
 
 Tracked as GitHub issues. Current planned items (mirrored in `CHANGELOG.md` under `[Unreleased]`):
