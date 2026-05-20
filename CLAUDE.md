@@ -53,8 +53,11 @@ uv tool install git+https://github.com/lipex360x/docx_builder.git
 Or from a local clone:
 
 ```bash
-uv tool install .
+uv tool install .                  # snapshot install
+uv tool install --editable .       # live install — source changes propagate without reinstall
 ```
+
+For active development on the package, prefer `--editable`. The global `~/.local/bin/docx_builder` then reads directly from the repo's `docx_builder/` package, so edits to `.py` files and bundled data are visible on the next invocation. Use the snapshot form only when you want a frozen copy.
 
 Then from any directory:
 
@@ -68,17 +71,17 @@ docx_builder install skill              # install Claude Code skill (asks scope)
 docx_builder install skill --scope local|global
 ```
 
-Re-install after pulling **or after editing the package locally** — the globally installed binary at `~/.local/bin/docx_builder` is a snapshot, not a live link to the source. Until you re-run `uv tool install`, behaviour observed via the global `docx_builder` command keeps reflecting the previously installed version:
+If installed as **snapshot** (`uv tool install .`), re-run after pulling or after editing the package:
 
 ```bash
 uv tool install --reinstall .
 ```
 
-In-tree development (without affecting the global binary) is fine via `uv run` from the repo root:
+If installed as **editable** (`uv tool install --editable .`), source edits are picked up automatically — no reinstall needed for `.py` or bundled-data changes. Only re-run when:
 
-```bash
-uv run python -m docx_builder.cli build /some/dir
-```
+- `[project.scripts]` entries change (e.g. new subcommand binary)
+- Dependencies change in `pyproject.toml`
+- Switching back to a snapshot install
 
 ## Styles
 
