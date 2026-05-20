@@ -166,6 +166,18 @@ Before closing this issue:
 
 Implementation guideline for the assistant: do **not** declare an issue resolved until every applicable line in this block is done. The global skill sync (`cp` into `.brain`) is the easiest one to forget and the most damaging when forgotten — without it, the next Claude Code session reads the old behaviour from the global skill cache and gives wrong guidance.
 
+### Marking progress on the checklist
+
+Checkboxes in `## Acceptance criteria` and `## Final step — documentation and skill sync` are not decorative. They must be ticked as work progresses so the issue body reflects observable state.
+
+**Convention:**
+
+1. **Edit the issue body** (`gh issue edit <N> --body-file ...` or via the GitHub UI) flipping `- [ ]` to `- [x]` for each item as it is completed. Do this **before** the commit that lands the item — not in a single batch at the end. If the commit fails or the implementation gets backed out, revert the tick.
+2. **PR body** references the issue with `Closes #N` so merge auto-closes it. The PR does not duplicate the checklist — reviewers click through to the issue.
+3. **Before requesting merge**, scan the issue body: every applicable `- [ ]` must be `- [x]` or have an explicit rationale comment in the issue (e.g. "deferred to follow-up, see #X"). A merged PR with unchecked AC items is a process violation, not a shortcut.
+
+Why edit the issue body rather than the PR body or just letting the merge close the issue: AI agents in fresh contexts use the issue body as the spec. If a future Claude Code re-opens the implementation (refactor, bug-fix, related feature) and the AC items still show `- [ ]`, the assistant will believe the work is incomplete and either redo it or get confused. The ticked state is the durable signal that "this AC was satisfied".
+
 ## Development
 
 ```bash
