@@ -1,0 +1,65 @@
+h1:
+  font_size: 14pt
+  bold: true
+  align: left
+  space_before: 14pt
+  space_after: 6pt
+
+h2:
+  font_size: 12pt
+  bold: true
+  align: left
+  space_before: 10pt
+  space_after: 3pt
+
+h3:
+  font_size: 11pt
+  bold: true
+  align: left
+  space_before: 8pt
+  space_after: 3pt
+
+body:
+  font_size: 11pt
+  space_after: 8pt
+
+bullet:
+  glyph: "• "
+  font_size: 11pt
+  indent_left: 0.3in
+  space_after: 3pt
+
+bold_lead:
+  glyph: "• "
+  font_size: 11pt
+  indent_left: 0.3in
+  space_after: 6pt
+
+reference:
+  font_size: 11pt
+  indent_left: 0.3in
+  indent_first_line: -0.3in
+  space_after: 6pt
+
+figure:
+  align: center
+  space_before: 10pt
+  default_width: 5.0in
+
+figure_pair:
+  align: center
+  space_before: 10pt
+  default_width_left: 3.0in
+  default_width_right: 2.5in
+
+figure_caption:
+  align: center
+  label_bold: true
+  caption_italic: true
+  font_size: 9pt
+  space_after: 16pt
+
+footer:
+  format: "{page} / {total}"
+  align: right
+  font_size: 9pt

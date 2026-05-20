@@ -1,0 +1,13 @@
+.venv/
+.git/
+__pycache__/
+*.pyc
+dist/
+build/
+*.db
+*.sqlite
+*.png
+*.jpg
+*.svg
+*.ico
+*.woff2
