@@ -129,11 +129,36 @@ These are still committed and pushed, but the `[Unreleased]` section in `CHANGEL
 
 Tracked as GitHub issues. Current planned items (mirrored in `CHANGELOG.md` under `[Unreleased]`):
 
-- [#1](https://github.com/lipex360x/docx_builder/issues/1) — `docx_builder export pdf` subcommand (macOS + Microsoft Word).
+- [#1](https://github.com/lipex360x/docx_builder/issues/1) — `docx_builder export pdf` + `build --pdf` (macOS + Microsoft Word). Includes Word permission-dialog workaround via scratch directory, and real page-count reporting.
+- [#2](https://github.com/lipex360x/docx_builder/issues/2) — Quality-of-life bundle: h3 colour bug, `--open` flag, content reuse (`extends:` / `include:`), deprecation warning for `hide_page_counter`, `init` message polish, Word auth doc.
 - Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls.
 - PDF-to-YAML transcription workflow — guided protocol for analysing a source PDF and emitting matching `content.yaml`.
 
 When opening a new roadmap item: create a GitHub issue, link it from `CHANGELOG.md` under `[Unreleased]`, and reference it back from this section.
+
+## Issue lifecycle — mandatory final-step checklist
+
+Every issue must end with the same closure block. This keeps the docs, the skill, and the global skill copy aligned with what shipped, so future Claude Code sessions never operate on stale information.
+
+When opening any new issue, append this section to the body verbatim (adjust the bracketed text only):
+
+```markdown
+---
+
+## Final step — documentation and skill sync (mandatory for every issue)
+
+Before closing this issue:
+
+- [ ] **CHANGELOG.md** — move the entry from `[Unreleased]` into a new `[X.Y.Z]` section with the date if shipping as a tagged release. Otherwise leave under `[Unreleased]`.
+- [ ] **`docx_builder/skill/SKILL.md`** — update so future Claude Code sessions know about the change.
+- [ ] **`CLAUDE.md`** — update only if the change affects developer workflow, repo conventions, or available commands.
+- [ ] **`docs/styles-reference.md`** — update if any styling field gained or lost behaviour.
+- [ ] **Global skill sync** — `cp docx_builder/skill/SKILL.md ~/www/claude/.brain/skills/docx_builder/SKILL.md`
+- [ ] **Editable install check** — if user is on snapshot install, run `uv tool install --reinstall .` to pick up changes. Editable installs propagate automatically.
+- [ ] **Tag** — only if the change is functional (see "When NOT to tag" above).
+```
+
+Implementation guideline for the assistant: do **not** declare an issue resolved until every applicable line in this block is done. The global skill sync (`cp` into `.brain`) is the easiest one to forget and the most damaging when forgotten — without it, the next Claude Code session reads the old behaviour from the global skill cache and gives wrong guidance.
 
 ## Development
 
