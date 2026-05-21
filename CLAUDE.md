@@ -166,6 +166,34 @@ Before closing this issue:
 
 Implementation guideline for the assistant: do **not** declare an issue resolved until every applicable line in this block is done. The global skill sync (`cp` into `.brain`) is the easiest one to forget and the most damaging when forgotten — without it, the next Claude Code session reads the old behaviour from the global skill cache and gives wrong guidance.
 
+### Branch per issue
+
+Every issue with concrete acceptance criteria (i.e. not `needs-design`) is implemented on its **own branch**, not on `main`. The branch isolates the change for review via PR and keeps `main` mergeable at all times.
+
+**Naming convention:** `<type>/<short-slug>-<issue-number>`
+
+| Type prefix | When to use | Example |
+|---|---|---|
+| `feat/` | New feature | `feat/pdf-export-1` |
+| `fix/` | Bug fix | `fix/h3-heading-color-2` |
+| `chore/` | Polish, docs, internal | `chore/init-message-2` |
+| `design/` | ADR / design pass (rare; usually goes via PR to `main`) | `design/content-reuse-3` |
+
+The short-slug is 2–4 words, kebab-cased, from the issue title. The issue number always trails so a branch is greppable by issue.
+
+**Workflow:**
+
+```bash
+git checkout main && git pull
+git checkout -b feat/pdf-export-1
+# ... work, commit, push ...
+gh pr create --title "feat: PDF export (closes #1)" --body "Closes #1"
+```
+
+Multiple items from the same issue (e.g. `#2` has 5 sub-items) usually share one branch unless the items naturally split into independent shippable units — in which case open separate PRs with `feat/...-2-part1`, `feat/...-2-part2`, etc., and each PR partially closes the issue via comment, fully closing only on the last.
+
+**Needs-design issues are different:** the design pass produces an ADR via a small PR (often direct on a `design/...` branch). Implementation only starts after the ADR merges, at which point a fresh implementation branch (`feat/...`) is opened.
+
 ### Marking progress on the checklist
 
 Checkboxes in `## Acceptance criteria` and `## Final step — documentation and skill sync` are not decorative. They must be ticked as work progresses so the issue body reflects observable state.
