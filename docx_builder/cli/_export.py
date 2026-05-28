@@ -19,9 +19,9 @@ Examples:
 Converts a built .docx to PDF via Microsoft Word on macOS, refreshing the
 table of contents and page fields first. By default the populated TOC is
 written back over the source .docx so it ends finalized; pass
---no-update-source to leave the source byte-identical. --open opens the
-resulting .pdf (macOS only). Input defaults to the filename build produces;
-output defaults to <input>.pdf.
+--no-update-source to leave the source byte-identical. --open opens both the
+resulting .pdf and the finalized .docx (in Microsoft Word); macOS only. Input
+defaults to the filename build produces; output defaults to <input>.pdf.
 """
 
 
@@ -44,6 +44,7 @@ def run_export(
         return 1
     if open_result:
         _shared.open_file(output_pdf)
+        _shared.open_in_word(input_docx)
     return 0
 
 
@@ -86,6 +87,6 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
     pdf_parser.add_argument(
         "--open",
         action="store_true",
-        help="open the resulting .pdf after export (macOS only)",
+        help="open both the resulting .pdf and the finalized .docx in Word after export (macOS only)",
     )
     pdf_parser.set_defaults(func=handle)

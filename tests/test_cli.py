@@ -120,7 +120,7 @@ def test_cli_build_open_opens_the_docx(tmp_path: Path, monkeypatch: pytest.Monke
 
     opened: list[Path] = []
     monkeypatch.setattr(_shared.sys, "platform", "darwin")
-    monkeypatch.setattr(_shared, "_run_open", lambda path: opened.append(path))
+    monkeypatch.setattr(_shared, "_run_open", lambda path, app=None: opened.append(path))
     init_project(tmp_path)
 
     exit_code = main(["build", str(tmp_path), "--open"])
@@ -137,7 +137,7 @@ def test_cli_build_open_non_macos_prints_note(
 
     opened: list[Path] = []
     monkeypatch.setattr(_shared.sys, "platform", "linux")
-    monkeypatch.setattr(_shared, "_run_open", lambda path: opened.append(path))
+    monkeypatch.setattr(_shared, "_run_open", lambda path, app=None: opened.append(path))
     init_project(tmp_path)
 
     exit_code = main(["build", str(tmp_path), "--open"])
@@ -148,12 +148,12 @@ def test_cli_build_open_non_macos_prints_note(
     assert "note: --open is currently macOS-only" in output
 
 
-def test_cli_build_pdf_open_opens_the_pdf(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_cli_build_pdf_open_opens_pdf_and_docx(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from docx_builder.cli import _shared
 
     opened: list[Path] = []
     monkeypatch.setattr(_shared.sys, "platform", "darwin")
-    monkeypatch.setattr(_shared, "_run_open", lambda path: opened.append(path))
+    monkeypatch.setattr(_shared, "_run_open", lambda path, app=None: opened.append(path))
     monkeypatch.setattr(
         "docx_builder.cli._export.export_pdf",
         lambda input_docx, output_pdf, update_source=True: output_pdf,
@@ -163,16 +163,15 @@ def test_cli_build_pdf_open_opens_the_pdf(tmp_path: Path, monkeypatch: pytest.Mo
     exit_code = main(["build", str(tmp_path), "--pdf", "--open"])
 
     assert exit_code == 0
-    assert len(opened) == 1
-    assert opened[0].suffix == ".pdf"
+    assert {path.suffix for path in opened} == {".pdf", ".docx"}
 
 
-def test_cli_export_pdf_open_opens_the_pdf(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_cli_export_pdf_open_opens_pdf_and_docx(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from docx_builder.cli import _shared
 
     opened: list[Path] = []
     monkeypatch.setattr(_shared.sys, "platform", "darwin")
-    monkeypatch.setattr(_shared, "_run_open", lambda path: opened.append(path))
+    monkeypatch.setattr(_shared, "_run_open", lambda path, app=None: opened.append(path))
     monkeypatch.setattr(
         "docx_builder.cli._export.export_pdf",
         lambda input_docx, output_pdf, update_source=True: output_pdf,
@@ -183,8 +182,7 @@ def test_cli_export_pdf_open_opens_the_pdf(tmp_path: Path, monkeypatch: pytest.M
     exit_code = main(["export", "pdf", str(tmp_path), "--open"])
 
     assert exit_code == 0
-    assert len(opened) == 1
-    assert opened[0].suffix == ".pdf"
+    assert {path.suffix for path in opened} == {".pdf", ".docx"}
 
 
 def test_cli_export_pdf_no_update_source_threads_through(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -348,3 +346,15 @@ def test_no_deprecation_warning_without_flag(capsys: pytest.CaptureFixture[str])
     _normalise_sections({"sections": [{"call": "body", "text": "x"}]})
 
     assert "deprecated" not in capsys.readouterr().err
+
+
+def test_open_in_word_invokes_microsoft_word(monkeypatch: pytest.MonkeyPatch) -> None:
+    from docx_builder.cli import _shared
+
+    commands: list[tuple[list[str], bool]] = []
+    monkeypatch.setattr(_shared.sys, "platform", "darwin")
+    monkeypatch.setattr(_shared.subprocess, "run", lambda command, check: commands.append((command, check)))
+
+    _shared.open_in_word(Path("/report.docx"))
+
+    assert commands == [(["open", "-a", "Microsoft Word", "/report.docx"], True)]

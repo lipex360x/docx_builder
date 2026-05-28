@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `--open` with `--pdf` (and `export pdf --open`) now opens **both** the resulting `.pdf` and the finalized `.docx` (the latter in Microsoft Word via `open -a`), instead of only the `.pdf`. Plain `build --open` still opens just the `.docx`. Closes the last gap versus a hand-rolled export script.
 - `docx_builder init` success message reworded from `Initialized: <path>` to `Created: <path>. Edit it directly, or ask Claude Code (docx_builder skill).` (issue #2, item 4)
 - `docs/styles-reference.md` gained a `## Known macOS Word quirks` section documenting Word's per-directory permission prompt, the broken AppleScript `save as`, and the unreliable cached `<Pages>` count. (issue #2, item 5)
 

@@ -9,8 +9,12 @@ def resolve_directory(value: str | None) -> Path:
     return Path(value).resolve() if value else Path.cwd()
 
 
-def _run_open(path: Path) -> None:
-    subprocess.run(["open", str(path)], check=True)
+def _run_open(path: Path, app: str | None = None) -> None:
+    command = ["open"]
+    if app is not None:
+        command += ["-a", app]
+    command.append(str(path))
+    subprocess.run(command, check=True)
 
 
 def open_file(path: Path) -> None:
@@ -18,6 +22,12 @@ def open_file(path: Path) -> None:
         print("note: --open is currently macOS-only")
         return
     _run_open(path)
+
+
+def open_in_word(path: Path) -> None:
+    if sys.platform != "darwin":
+        return
+    _run_open(path, app="Microsoft Word")
 
 
 def print_content_not_found(project_dir: Path) -> None:

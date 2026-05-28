@@ -21,8 +21,8 @@ Builds the .docx described by content.yaml in the current directory (or the
 given directory). --pdf chains an export to PDF via Microsoft Word on macOS,
 which refreshes the table of contents and writes the populated TOC back over
 the source .docx (pass --no-update-source to skip the write-back). --open
-opens the result: the .pdf when combined with --pdf, otherwise the .docx
-(macOS only).
+opens the result: with --pdf, both the .pdf and the finalized .docx (in
+Microsoft Word); otherwise just the .docx (macOS only).
 """
 
 
@@ -75,6 +75,6 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
     parser.add_argument(
         "--open",
         action="store_true",
-        help="open the result after building: the .pdf with --pdf, otherwise the .docx (macOS only)",
+        help="open the result: with --pdf, both the .pdf and the .docx in Word; otherwise the .docx (macOS only)",
     )
     parser.set_defaults(func=handle)

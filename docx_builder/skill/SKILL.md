@@ -31,10 +31,10 @@ docx_builder build --output Custom.docx
 docx_builder build --template-dir ~/templates
 docx_builder build --pdf      # build then export to PDF in one shot (macOS + Word)
 docx_builder build --open     # build, then open the .docx (macOS)
-docx_builder build --pdf --open  # build, export, then open the .pdf (macOS)
+docx_builder build --pdf --open  # build, export, then open BOTH the .pdf and the .docx in Word (macOS)
 docx_builder export pdf       # convert the built .docx to PDF (macOS + Word)
 docx_builder export pdf --no-update-source  # do not write the populated TOC back over the source
-docx_builder export pdf --open  # convert then open the resulting .pdf (macOS)
+docx_builder export pdf --open  # convert then open both the .pdf and the finalized .docx in Word (macOS)
 ```
 
 `init` does NOT scaffold a placeholder document. It only writes a tiny marker file pointing back at this skill. You (the assistant) are expected to author the real `content.yaml` based on what the user actually wants to build — CV, report, manual, paper, contract, fiction — each gets a tailored YAML.
@@ -53,7 +53,7 @@ docx_builder build [DIR] --pdf [--no-update-source] [--open]
 - Requires macOS and Microsoft Word. Uses Word via JavaScript for Automation (JXA): it updates every table of contents and all fields, then saves, so the TOC and page numbers render correctly in the PDF.
 - **By default the export finalises the source `.docx`.** Word's `document.save()` persists the populated TOC into the scratch copy, and Python then moves that scratch copy back over the source input path — so the source ends with a filled TOC and no manual F9. This is the default (no flag). Hard constraint: this is the only way the TOC gets populated; a plain `build` cannot do it because `python-docx` is not a renderer.
 - `--no-update-source` opts out: the source `.docx` is left byte-identical to the pre-export input, and only the PDF is produced. Use it when `export pdf --input SomeUserFile.docx` points at a file you must not overwrite.
-- `--open` opens the result when the command finishes — the `.pdf` with `--pdf`/`export pdf`, otherwise the `.docx` on a plain `build`. macOS-only; on other platforms it prints `note: --open is currently macOS-only` and skips without erroring.
+- `--open` opens the result when the command finishes. With `--pdf` / `export pdf` it opens **both** the `.pdf` (default viewer) and the finalized `.docx` (in Microsoft Word, via `open -a`); a plain `build --open` opens just the `.docx`. macOS-only; on other platforms it prints `note: --open is currently macOS-only` and skips without erroring.
 - A defensive strip removes the legacy `"Note: open in Microsoft Word…"` paragraph from the scratch copy before conversion, so old `--input` documents that still carry it do not leak it into the PDF or the finalised source. Freshly built documents no longer emit that note at all.
 - The PDF is first written to a stable scratch directory (`~/Library/Caches/docx_builder/exports/`) then moved to the requested path, so Word's Files & Folders permission prompt only fires once, ever. The write-back to the source is a plain Python move and needs no Word grant.
 - After export it prints the real page count: `Exported: <path> (<N> pages)`.
