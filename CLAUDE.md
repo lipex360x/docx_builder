@@ -20,7 +20,13 @@ Documentation files (CLAUDE.md, code comments, content) stay in English as alrea
 
 ```
 docx_builder/
-  cli.py              # argparse entry — build / init / install skill
+  cli/                # argparse entry package — one module per subcommand
+    __init__.py       # DESCRIPTION + EPILOG + _build_parser() + main()
+    _shared.py        # structured next-step error printers + resolve_directory()
+    _build.py         # build command (+ --pdf flag); register() + handle()
+    _init.py          # init command; register() + handle()
+    _export.py        # export pdf command; register() + handle()
+    _install.py       # install skill command (interactive scope prompt)
   builder.py          # build() + init_project()
   elements.py         # h1, h2, h3, body, bullet, bold_lead, reference, page_break
   figure.py           # figure(), figure_pair()
