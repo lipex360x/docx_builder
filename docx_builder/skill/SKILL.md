@@ -29,11 +29,31 @@ docx_builder build            # build using content.yaml in cwd
 docx_builder build /path/dir  # build from another directory
 docx_builder build --output Custom.docx
 docx_builder build --template-dir ~/templates
+docx_builder build --pdf      # build then export to PDF in one shot (macOS + Word)
+docx_builder export pdf       # convert the built .docx to PDF (macOS + Word)
 ```
 
 `init` does NOT scaffold a placeholder document. It only writes a tiny marker file pointing back at this skill. You (the assistant) are expected to author the real `content.yaml` based on what the user actually wants to build — CV, report, manual, paper, contract, fiction — each gets a tailored YAML.
 
-After `build`, open the `.docx` in Word, press `Cmd+A` then `F9` to update fields (fills the TOC).
+After `build`, open the `.docx` in Word, press `Cmd+A` then `F9` to update fields (fills the TOC). On macOS with Microsoft Word installed, `docx_builder export pdf` automates this — see below.
+
+## PDF export (macOS + Microsoft Word)
+
+```bash
+docx_builder export pdf [DIR] [--input FILE] [--output FILE]
+docx_builder build [DIR] --pdf
+```
+
+- Input defaults to the same filename `build` would produce (`cover.output` template → default pattern); override with `--input`.
+- Output defaults to `<input>.pdf`; override with `--output`.
+- Requires macOS and Microsoft Word. Uses Word via JavaScript for Automation (JXA): it updates every table of contents and all fields before saving, so the TOC and page numbers render correctly in the PDF.
+- The redundant TOC instruction note (`"Note: open in Microsoft Word…"`) is stripped from a scratch copy before conversion, so it never appears in the PDF. The source `.docx` is left untouched.
+- The PDF is first written to a stable scratch directory (`~/Library/Caches/docx_builder/exports/`) then moved to the requested path, so Word's Files & Folders permission prompt only fires once, ever.
+- After export it prints the real page count: `Exported: <path> (<N> pages)`.
+
+**Never trust `docProps/app.xml`'s `<Pages>` for the page count.** `python-docx` writes whatever was cached at the last serialisation — it is not recalculated and is routinely wrong (e.g. reports 1 page when Word renders 2). The PDF export path is the only reliable way to learn the true page count.
+
+Errors are actionable and exit 1: non-macOS → `"PDF export requires macOS + Microsoft Word"`; Word not installed → points at the missing application; input `.docx` missing → names the resolved path.
 
 ## content.yaml structure
 

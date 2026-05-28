@@ -1,0 +1,23 @@
+function run(argv) {
+  const inputPath = argv[0];
+  const outputPath = argv[1];
+
+  const word = Application("Microsoft Word");
+  if (!word.running()) {
+    word.activate();
+    delay(1);
+  }
+
+  word.open(inputPath);
+  const document = word.activeDocument;
+
+  const tablesOfContents = document.tablesOfContents;
+  for (let i = 0; i < tablesOfContents.length; i++) {
+    tablesOfContents[i].update();
+  }
+  document.fields.update();
+  delay(1);
+
+  document.saveAs({ fileName: outputPath, fileFormat: "format PDF" });
+  document.close({ saving: "no" });
+}

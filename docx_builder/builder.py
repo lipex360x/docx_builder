@@ -92,6 +92,24 @@ def _normalise_sections(data: dict[str, Any]) -> tuple[list[dict[str, Any]], boo
     return body_sections, has_hidden
 
 
+def _load_content_data(project_path: Path) -> dict[str, Any]:
+    content_path = project_path / "content.yaml"
+    if not content_path.exists():
+        raise FileNotFoundError(f"content.yaml not found in {project_path}")
+
+    with open(content_path) as content_file:
+        data: dict[str, Any] = yaml.safe_load(content_file) or {}
+    return data
+
+
+def resolve_output_path(project_dir: str | Path, output_override: str | None = None) -> Path:
+    project_path = Path(project_dir).resolve()
+    data = _load_content_data(project_path)
+
+    cover: dict[str, Any] = data.get("cover") or {}
+    return _resolve_output_path(project_path, cover, output_override)
+
+
 def build(
     project_dir: str | Path,
     *,
@@ -99,12 +117,7 @@ def build(
     output_override: str | None = None,
 ) -> Path:
     project_path = Path(project_dir).resolve()
-    content_path = project_path / "content.yaml"
-    if not content_path.exists():
-        raise FileNotFoundError(f"content.yaml not found in {project_path}")
-
-    with open(content_path) as content_file:
-        data: dict[str, Any] = yaml.safe_load(content_file) or {}
+    data = _load_content_data(project_path)
 
     cover: dict[str, Any] = data.get("cover") or {}
     styles_block: dict[str, dict[str, Any]] = data.get("styles") or {}

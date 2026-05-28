@@ -119,6 +119,17 @@ docx_builder build /path/to/some-other-project
 
 Open the generated `.docx`, press `Cmd+A` (or `Ctrl+A`) then `F9` to refresh fields.
 
+On macOS with Microsoft Word installed, this step is automated by the PDF export:
+
+```bash
+docx_builder export pdf
+# Exported: /Users/you/projects/my-report/Report_0001.pdf (2 pages)
+
+docx_builder build --pdf       # build + export in one command
+```
+
+Word updates every table of contents and all fields before saving, so the TOC and page numbers render correctly. The reported page count is read from the actual PDF — the cached `<Pages>` value in the `.docx` is unreliable and not used.
+
 <div align="right"><a href="#docx_builder">↑ Back to top</a></div>
 
 ---
@@ -231,12 +242,15 @@ Full schema, accepted units, color formats, defaults, and every section type's k
 
 ```text
 docx_builder init [DIR] [--force]
-docx_builder build [DIR] [--output FILE] [--template-dir DIR]
+docx_builder build [DIR] [--output FILE] [--template-dir DIR] [--pdf]
+docx_builder export pdf [DIR] [--input FILE] [--output FILE]
 ```
 
 - `DIR` defaults to the current working directory.
-- `--output` overrides both the YAML `cover.output` and the default pattern.
+- `--output` overrides both the YAML `cover.output` and the default pattern (for `build`); for `export pdf` it overrides the destination `.pdf` path.
 - `--template-dir` overrides the template lookup directory (otherwise the bundled `docx_builder/templates/` is used).
+- `--pdf` (on `build`) builds then exports to PDF in one shot. Requires macOS + Microsoft Word.
+- `export pdf` converts a built `.docx` to PDF via Microsoft Word (macOS only). Input defaults to `build`'s filename resolution; `--input` overrides it. The PDF reports its real page count.
 
 <div align="right"><a href="#docx_builder">↑ Back to top</a></div>
 
@@ -248,8 +262,9 @@ docx_builder build [DIR] [--output FILE] [--template-dir DIR]
 .
 ├── docx_builder/
 │   ├── __init__.py
-│   ├── cli.py             # docx_builder entry point (build / init)
+│   ├── cli.py             # docx_builder entry point (build / init / export)
 │   ├── builder.py         # build() and init_project()
+│   ├── export.py          # export_pdf() — Word + JXA PDF conversion (macOS)
 │   ├── elements.py        # Paragraph primitives (h1, h2, h3, body, bullet, …)
 │   ├── figure.py          # figure() and figure_pair() with centred captions
 │   ├── pagination.py      # PAGE / NUMPAGES footer added to content sections

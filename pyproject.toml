@@ -1,6 +1,6 @@
 [project]
 name = "docx_builder"
-version = "0.1.0"
+version = "0.2.0"
 description = "Generate DOCX reports from a content.yaml in any working directory."
 requires-python = ">=3.11"
 dependencies = [
@@ -30,6 +30,9 @@ include = ["docx_builder", "README.md", "pyproject.toml"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+markers = [
+    "requires_word: integration test that spawns Microsoft Word (opt-in via DOCX_BUILDER_TEST_WORD=1)",
+]
 
 [tool.ruff]
 line-length = 120
@@ -40,6 +43,7 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RET", "C90", "S", "N", "PLR"]
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S603", "S607", "S108", "PLR2004", "SLF001"]
 "docx_builder/elements.py" = ["SLF001"]
+"docx_builder/export.py" = ["SLF001", "S603", "S607"]
 "docx_builder/figure.py" = ["PLR0913"]
 "docx_builder/pagination.py" = ["SLF001"]
 "docx_builder/summary.py" = ["SLF001"]
