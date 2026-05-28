@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+import sys
 from importlib.resources import as_file, files
 from pathlib import Path
 from typing import Any
@@ -79,9 +81,21 @@ def _load_document(
     return Document(str(cover_path))
 
 
+def _warn_if_deprecated_flag(sections: list[dict[str, Any]]) -> None:
+    if os.environ.get("DOCX_BUILDER_NO_DEPRECATION"):
+        return
+    if any(bool(section.get("hide_page_counter")) for section in sections):
+        print(
+            "warning: 'hide_page_counter' is deprecated; use the top-level 'front_matter:' block instead.\n"
+            "         See docs/styles-reference.md#page-numbering",
+            file=sys.stderr,
+        )
+
+
 def _normalise_sections(data: dict[str, Any]) -> tuple[list[dict[str, Any]], bool]:
     front_matter: list[dict[str, Any]] = list(data.get("front_matter") or [])
     body_sections: list[dict[str, Any]] = list(data.get("sections") or [])
+    _warn_if_deprecated_flag(body_sections)
 
     if front_matter:
         flagged_front = [{**item, "hide_page_counter": True} for item in front_matter]

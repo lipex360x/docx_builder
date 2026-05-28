@@ -157,9 +157,11 @@ Any section may appear in either `front_matter` or `sections`. The distinction i
 
 ### Legacy: `hide_page_counter`
 
-The flag `hide_page_counter: true` on individual section items still works and is supported for backward compatibility. New documents should prefer the cleaner `front_matter` block — it makes intent explicit and avoids repetition.
+The flag `hide_page_counter: true` on individual section items still works but is **deprecated**: `build` prints a one-time `warning:` to stderr when it sees it, and it is scheduled for removal in v0.4. Use the `front_matter` block instead — it makes intent explicit and avoids repetition. (The undocumented `DOCX_BUILDER_NO_DEPRECATION=1` env var silences the warning for advanced users.)
 
 ## Styles — cascade and editing
+
+> Headings (`h1`/`h2`/`h3`) default to black (`color: "#000000"`) — they no longer inherit Word's built-in blue. Do **not** suggest `color: "#000000"` as a workaround; it is already the default. Override to another colour via `styles:` as usual.
 
 Order of precedence (later wins):
 

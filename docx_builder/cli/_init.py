@@ -25,7 +25,7 @@ def handle(arguments: argparse.Namespace) -> int:
     except FileExistsError:
         _shared.print_content_exists(target)
         return 1
-    print(f"Initialized: {content_path}")
+    print(f"Created: {content_path}. Edit it directly, or ask Claude Code (docx_builder skill).")
     return 0
 
 

@@ -114,6 +114,7 @@ These are the exact values shipped in `default_styles.yaml`. Override any field 
 h1:
   font_size: 14pt
   bold: true
+  color: "#000000"
   align: left
   space_before: 14pt
   space_after: 6pt
@@ -121,6 +122,7 @@ h1:
 h2:
   font_size: 12pt
   bold: true
+  color: "#000000"
   align: left
   space_before: 10pt
   space_after: 3pt
@@ -128,6 +130,7 @@ h2:
 h3:
   font_size: 11pt
   bold: true
+  color: "#000000"
   align: left
   space_before: 8pt
   space_after: 3pt
@@ -194,7 +197,7 @@ sections: [...]
 sections: [...]
 ```
 
-The legacy `hide_page_counter: true` flag on individual section items still works for backward compatibility. New documents should use `front_matter:` instead — it is declarative, free of repetition, and surfaces intent at the top of the file.
+The legacy `hide_page_counter: true` flag on individual section items still works but is **deprecated** — `build` now prints a one-time `warning:` to stderr when it is present, and the flag is scheduled for removal in v0.4. New documents should use `front_matter:` instead — it is declarative, free of repetition, and surfaces intent at the top of the file.
 
 ## Section type reference
 
@@ -236,3 +239,11 @@ This file is the complete reference. To restyle a document without any tooling:
 4. Run `docx_builder build` from the project directory.
 
 Field names and value formats are stable — anything documented here is supported by the current version.
+
+## Known macOS Word quirks
+
+These only matter if you bypass the CLI and drive Microsoft Word yourself (custom scripts). `docx_builder export pdf` already handles them for you.
+
+- **Per-directory permission prompt.** macOS asks Word for Files & Folders access the first time it writes to a directory it has not been authorised for. A script that writes PDFs into many different project directories triggers the prompt once per directory. `docx_builder export pdf` sidesteps this by always letting Word write inside a single stable scratch directory (`~/Library/Caches/docx_builder/exports/`) — authorised once — then moving the result to its destination with a plain file move, which needs no Word grant.
+- **`save as` is broken in Word 16.70+.** The AppleScript `save as` verb fails on recent Word. The supported path is JavaScript for Automation (JXA) via `osascript -l JavaScript`, which is what the export subcommand uses.
+- **Cached `<Pages>` is unreliable.** `python-docx` writes a `<Pages>` value into `docProps/app.xml` at save time, but it is not recalculated against real pagination — only a renderer (Word) repaginating the document yields a true page count. `export pdf` reports the real count from the produced PDF via `mdls kMDItemNumberOfPages`.

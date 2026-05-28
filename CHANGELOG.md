@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Headings (`h1`/`h2`/`h3`) no longer inherit Word's built-in blue theme colour. The bundled defaults now set `color: "#000000"` for all three, applied as direct run formatting so it overrides the `Heading N` style colour. Override per-heading via `styles:` as before. (issue #2, item 1)
 
+### Changed
+
+- `docx_builder init` success message reworded from `Initialized: <path>` to `Created: <path>. Edit it directly, or ask Claude Code (docx_builder skill).` (issue #2, item 4)
+- `docs/styles-reference.md` gained a `## Known macOS Word quirks` section documenting Word's per-directory permission prompt, the broken AppleScript `save as`, and the unreliable cached `<Pages>` count. (issue #2, item 5)
+
+### Deprecated
+
+- `hide_page_counter: true` on individual sections now prints a one-time `warning:` to stderr per build (suppress with `DOCX_BUILDER_NO_DEPRECATION=1`). Use the `front_matter:` block instead; the flag is scheduled for removal in v0.4. (issue #2, item 3)
+
 ### Planned
 
 - Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls (quote, callout, table, code_block, …) without touching the core renderer.

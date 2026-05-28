@@ -2,8 +2,12 @@ from pathlib import Path
 
 import pytest
 
-from docx_builder.builder import init_project
+from docx_builder.builder import _normalise_sections, init_project
 from docx_builder.cli import main
+
+
+def _flagged_sections(count: int) -> dict[str, list[dict[str, object]]]:
+    return {"sections": [{"call": "body", "text": "x", "hide_page_counter": True} for _ in range(count)]}
 
 
 def test_init_creates_content_yaml(tmp_path: Path) -> None:
@@ -310,3 +314,37 @@ def test_init_existing_suggests_force(tmp_path: Path, capsys: pytest.CaptureFixt
     assert exit_code == 1
     error = capsys.readouterr().err
     assert "--force" in error
+
+
+def test_init_prints_created_message(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    exit_code = main(["init", str(tmp_path)])
+
+    assert exit_code == 0
+    output = capsys.readouterr().out
+    assert output.startswith("Created:")
+    assert "Initialized" not in output
+
+
+def test_deprecation_warning_fires_once_for_many_flagged_sections(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    _normalise_sections(_flagged_sections(5))
+
+    error = capsys.readouterr().err
+    assert error.count("'hide_page_counter' is deprecated") == 1
+
+
+def test_deprecation_warning_suppressed_by_env(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("DOCX_BUILDER_NO_DEPRECATION", "1")
+
+    _normalise_sections(_flagged_sections(3))
+
+    assert "deprecated" not in capsys.readouterr().err
+
+
+def test_no_deprecation_warning_without_flag(capsys: pytest.CaptureFixture[str]) -> None:
+    _normalise_sections({"sections": [{"call": "body", "text": "x"}]})
+
+    assert "deprecated" not in capsys.readouterr().err
