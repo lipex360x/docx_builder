@@ -1,11 +1,23 @@
 from __future__ import annotations
 
+import subprocess
 import sys
 from pathlib import Path
 
 
 def resolve_directory(value: str | None) -> Path:
     return Path(value).resolve() if value else Path.cwd()
+
+
+def _run_open(path: Path) -> None:
+    subprocess.run(["open", str(path)], check=True)
+
+
+def open_file(path: Path) -> None:
+    if sys.platform != "darwin":
+        print("note: --open is currently macOS-only")
+        return
+    _run_open(path)
 
 
 def print_content_not_found(project_dir: Path) -> None:

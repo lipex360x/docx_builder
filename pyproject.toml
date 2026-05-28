@@ -42,6 +42,7 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RET", "C90", "S", "N", "PLR"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S603", "S607", "S108", "PLR2004", "SLF001"]
+"docx_builder/cli/_shared.py" = ["S603", "S607"]
 "docx_builder/elements.py" = ["SLF001"]
 "docx_builder/export.py" = ["SLF001", "S603", "S607"]
 "docx_builder/figure.py" = ["PLR0913"]
