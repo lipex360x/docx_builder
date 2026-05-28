@@ -117,18 +117,19 @@ docx_builder build /path/to/some-other-project
 
 ### 4. Finalise the TOC in Word
 
-Open the generated `.docx`, press `Cmd+A` (or `Ctrl+A`) then `F9` to refresh fields.
-
-On macOS with Microsoft Word installed, this step is automated by the PDF export:
+A plain `docx_builder build` cannot populate the table of contents on its own — the TOC is a Word field, and only Word can repaginate and fill it. The `.docx` ships with a TOC field placeholder. Either open it in Word and press `Cmd+A` (or `Ctrl+A`) then `F9` to refresh fields, or use the PDF export, which drives Word for you on macOS:
 
 ```bash
 docx_builder export pdf
 # Exported: /Users/you/projects/my-report/Report_0001.pdf (2 pages)
 
-docx_builder build --pdf       # build + export in one command
+docx_builder build --pdf            # build + export in one command
+docx_builder build --pdf --open     # ...and open the resulting PDF
 ```
 
-Word updates every table of contents and all fields before saving, so the TOC and page numbers render correctly. The reported page count is read from the actual PDF — the cached `<Pages>` value in the `.docx` is unreliable and not used.
+Word updates every table of contents and all fields before saving, so the TOC and page numbers render correctly. By **default the export also writes the populated TOC back over the source `.docx`**, so the source ends finalised (filled TOC, no manual F9). Pass `--no-update-source` to leave the source byte-identical — useful when `export pdf --input SomeFile.docx` points at a file you do not want overwritten. The reported page count is read from the actual PDF — the cached `<Pages>` value in the `.docx` is unreliable and not used.
+
+`--open` opens the result after the command finishes (the `.pdf` with `--pdf`, otherwise the `.docx`); it is macOS-only and is skipped with a note elsewhere.
 
 <div align="right"><a href="#docx_builder">↑ Back to top</a></div>
 
@@ -242,15 +243,17 @@ Full schema, accepted units, color formats, defaults, and every section type's k
 
 ```text
 docx_builder init [DIR] [--force]
-docx_builder build [DIR] [--output FILE] [--template-dir DIR] [--pdf]
-docx_builder export pdf [DIR] [--input FILE] [--output FILE]
+docx_builder build [DIR] [--output FILE] [--template-dir DIR] [--pdf] [--no-update-source] [--open]
+docx_builder export pdf [DIR] [--input FILE] [--output FILE] [--no-update-source] [--open]
 ```
 
 - `DIR` defaults to the current working directory.
 - `--output` overrides both the YAML `cover.output` and the default pattern (for `build`); for `export pdf` it overrides the destination `.pdf` path.
 - `--template-dir` overrides the template lookup directory (otherwise the bundled `docx_builder/templates/` is used).
 - `--pdf` (on `build`) builds then exports to PDF in one shot. Requires macOS + Microsoft Word.
-- `export pdf` converts a built `.docx` to PDF via Microsoft Word (macOS only). Input defaults to `build`'s filename resolution; `--input` overrides it. The PDF reports its real page count.
+- `export pdf` converts a built `.docx` to PDF via Microsoft Word (macOS only). Input defaults to `build`'s filename resolution; `--input` overrides it. The PDF reports its real page count. By default the populated TOC is written back over the source `.docx`.
+- `--no-update-source` (on `export pdf`, honoured by `build --pdf`) leaves the source `.docx` byte-identical instead of writing back the populated TOC.
+- `--open` opens the result after the command finishes — the `.pdf` with `--pdf`, otherwise the `.docx`. macOS-only; elsewhere it prints a note and skips.
 
 <div align="right"><a href="#docx_builder">↑ Back to top</a></div>
 
