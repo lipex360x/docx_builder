@@ -59,6 +59,58 @@ def test_cli_build_missing_content_returns_error(tmp_path: Path, capsys: pytest.
     assert "content.yaml not found" in error
 
 
+def test_cli_export_pdf_help_lists_subcommand(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit):
+        main(["export", "pdf", "--help"])
+
+    output = capsys.readouterr().out
+    assert "--input" in output
+    assert "--output" in output
+
+
+def test_cli_build_help_documents_pdf_flag(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit):
+        main(["build", "--help"])
+
+    output = capsys.readouterr().out
+    assert "--pdf" in output
+
+
+def test_cli_export_pdf_non_macos_returns_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from docx_builder import export
+
+    monkeypatch.setattr(export.sys, "platform", "linux")
+    init_project(tmp_path)
+    main(["build", str(tmp_path)])
+    capsys.readouterr()
+
+    exit_code = main(["export", "pdf", str(tmp_path)])
+
+    assert exit_code == 1
+    error = capsys.readouterr().err
+    assert "requires macOS" in error
+
+
+def test_cli_build_pdf_flag_invokes_export(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    calls: list[tuple[Path, Path]] = []
+
+    def fake_export(input_docx: Path, output_pdf: Path) -> Path:
+        calls.append((input_docx, output_pdf))
+        return output_pdf
+
+    monkeypatch.setattr("docx_builder.cli.export_pdf", fake_export)
+    init_project(tmp_path)
+
+    exit_code = main(["build", str(tmp_path), "--pdf"])
+
+    assert exit_code == 0
+    assert len(calls) == 1
+
+
 def test_cli_init_then_build(tmp_path: Path) -> None:
     init_exit = main(["init", str(tmp_path)])
     assert init_exit == 0
