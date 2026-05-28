@@ -18,6 +18,7 @@ function run(argv) {
   document.fields.update();
   delay(1);
 
+  document.save();
   document.saveAs({ fileName: outputPath, fileFormat: "format PDF" });
   document.close({ saving: "no" });
 }
