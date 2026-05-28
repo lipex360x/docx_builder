@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Headings (`h1`/`h2`/`h3`) no longer inherit Word's built-in blue theme colour. The bundled defaults now set `color: "#000000"` for all three, applied as direct run formatting so it overrides the `Heading N` style colour. Override per-heading via `styles:` as before. (issue #2, item 1)
+
 ### Planned
 
 - Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls (quote, callout, table, code_block, …) without touching the core renderer.

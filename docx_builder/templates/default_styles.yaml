@@ -1,6 +1,7 @@
 h1:
   font_size: 14pt
   bold: true
+  color: "#000000"
   align: left
   space_before: 14pt
   space_after: 6pt
@@ -8,6 +9,7 @@ h1:
 h2:
   font_size: 12pt
   bold: true
+  color: "#000000"
   align: left
   space_before: 10pt
   space_after: 3pt
@@ -15,6 +17,7 @@ h2:
 h3:
   font_size: 11pt
   bold: true
+  color: "#000000"
   align: left
   space_before: 8pt
   space_after: 3pt

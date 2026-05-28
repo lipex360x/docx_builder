@@ -1,5 +1,5 @@
 from docx import Document
-from docx.shared import Inches, Pt
+from docx.shared import Inches, Pt, RGBColor
 
 from docx_builder.elements import body, bold_lead, bullet, heading_1, heading_2, heading_3, page_break, reference
 from docx_builder.styles import StyleResolver
@@ -26,6 +26,7 @@ def test_h1_run_font() -> None:
     result = heading_1(document, "Heading One", resolver.resolve("h1"))
     assert result.runs[0].font.size == Pt(14)
     assert result.runs[0].bold is True
+    assert result.runs[0].font.color.rgb == RGBColor(0x00, 0x00, 0x00)
 
 
 def test_h2_spacing_and_font() -> None:
@@ -35,6 +36,7 @@ def test_h2_spacing_and_font() -> None:
     assert result.paragraph_format.space_after == Pt(3)
     assert result.runs[0].font.size == Pt(12)
     assert result.runs[0].bold is True
+    assert result.runs[0].font.color.rgb == RGBColor(0x00, 0x00, 0x00)
 
 
 def test_h3_spacing_and_font() -> None:
@@ -44,6 +46,7 @@ def test_h3_spacing_and_font() -> None:
     assert result.paragraph_format.space_after == Pt(3)
     assert result.runs[0].font.size == Pt(11)
     assert result.runs[0].bold is True
+    assert result.runs[0].font.color.rgb == RGBColor(0x00, 0x00, 0x00)
 
 
 def test_body_spacing() -> None:
