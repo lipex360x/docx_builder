@@ -16,6 +16,10 @@ def _make_docx_with_note(target: Path) -> Path:
     document = Document()
     document.add_paragraph("Heading")
     build_summary(document)
+    document.add_paragraph(
+        "Note: open in Microsoft Word, right-click the table of contents "
+        "and select 'Update Field', or press Ctrl+A then F9."
+    )
     document.add_paragraph("Body")
     document.save(str(target))
     return target
@@ -100,7 +104,30 @@ def test_export_rejects_when_input_missing(monkeypatch: pytest.MonkeyPatch, tmp_
         export.export_pdf(missing, tmp_path / "absent.pdf")
 
 
-def test_export_writes_to_scratch_then_moves(
+def _fake_word_run_factory(scratch_dir: Path, recorded: dict[str, Any], page_count: int = 3) -> Any:
+    def fake_run(command: list[str], **_keyword_arguments: Any) -> subprocess.CompletedProcess[str]:
+        name = Path(command[0]).name
+        if name == "osascript":
+            scratch_pdf = Path(command[-1])
+            assert scratch_pdf.parent == scratch_dir
+            scratch_docx = Path(command[-2])
+            assert scratch_docx.parent == scratch_dir
+            recorded["stripped_in_scratch"] = export.TOC_NOTE_NEEDLE not in _docx_text(scratch_docx)
+            document = Document(str(scratch_docx))
+            document.add_paragraph("WORD_POPULATED_TOC")
+            document.save(str(scratch_docx))
+            scratch_pdf.write_bytes(b"%PDF-1.4 fake")
+            return subprocess.CompletedProcess(command, 0, "", "")
+        if name == "mdimport":
+            return subprocess.CompletedProcess(command, 0, "", "")
+        if name == "mdls":
+            return subprocess.CompletedProcess(command, 0, f"kMDItemNumberOfPages = {page_count}\n", "")
+        raise AssertionError(f"unexpected command: {command}")
+
+    return fake_run
+
+
+def test_export_finalizes_source_by_default(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     monkeypatch.setattr(export.sys, "platform", "darwin")
@@ -113,34 +140,39 @@ def test_export_writes_to_scratch_then_moves(
     destination = tmp_path / "out" / "Report.pdf"
 
     recorded: dict[str, Any] = {}
-
-    def fake_run(command: list[str], **_keyword_arguments: Any) -> subprocess.CompletedProcess[str]:
-        name = Path(command[0]).name
-        if name == "osascript":
-            scratch_pdf = Path(command[-1])
-            assert scratch_pdf.parent == scratch_dir
-            scratch_docx = Path(command[-2])
-            assert scratch_docx.parent == scratch_dir
-            recorded["stripped_in_scratch"] = export.TOC_NOTE_NEEDLE not in _docx_text(scratch_docx)
-            scratch_pdf.write_bytes(b"%PDF-1.4 fake")
-            return subprocess.CompletedProcess(command, 0, "", "")
-        if name == "mdimport":
-            return subprocess.CompletedProcess(command, 0, "", "")
-        if name == "mdls":
-            return subprocess.CompletedProcess(command, 0, "kMDItemNumberOfPages = 3\n", "")
-        raise AssertionError(f"unexpected command: {command}")
-
-    monkeypatch.setattr(subprocess, "run", fake_run)
+    monkeypatch.setattr(subprocess, "run", _fake_word_run_factory(scratch_dir, recorded))
 
     export.export_pdf(source, destination)
 
     assert destination.exists()
-    assert not list(scratch_dir.glob("*.pdf"))
+    assert not list(scratch_dir.glob("*"))
     assert recorded["stripped_in_scratch"] is True
-    assert export.TOC_NOTE_NEEDLE in _docx_text(source)
+    source_text = _docx_text(source)
+    assert export.TOC_NOTE_NEEDLE not in source_text
+    assert "WORD_POPULATED_TOC" in source_text
 
     output = capsys.readouterr().out
     assert f"Exported: {destination} (3 pages)" in output
+
+
+def test_export_no_update_source_leaves_source_untouched(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(export.sys, "platform", "darwin")
+    monkeypatch.setattr(export, "_word_is_installed", lambda: True)
+
+    scratch_dir = tmp_path / "scratch"
+    monkeypatch.setattr(export, "SCRATCH_DIRECTORY", scratch_dir)
+
+    source = _make_docx_with_note(tmp_path / "Report.docx")
+    destination = tmp_path / "out" / "Report.pdf"
+    original_bytes = source.read_bytes()
+
+    recorded: dict[str, Any] = {}
+    monkeypatch.setattr(subprocess, "run", _fake_word_run_factory(scratch_dir, recorded))
+
+    export.export_pdf(source, destination, update_source=False)
+
+    assert destination.exists()
+    assert source.read_bytes() == original_bytes
 
 
 def _docx_text(path: Path) -> str:

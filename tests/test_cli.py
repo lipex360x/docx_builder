@@ -98,7 +98,7 @@ def test_cli_build_pdf_flag_invokes_export(
 ) -> None:
     calls: list[tuple[Path, Path]] = []
 
-    def fake_export(input_docx: Path, output_pdf: Path) -> Path:
+    def fake_export(input_docx: Path, output_pdf: Path, update_source: bool = True) -> Path:
         calls.append((input_docx, output_pdf))
         return output_pdf
 
@@ -109,6 +109,129 @@ def test_cli_build_pdf_flag_invokes_export(
 
     assert exit_code == 0
     assert len(calls) == 1
+
+
+def test_cli_build_open_opens_the_docx(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from docx_builder.cli import _shared
+
+    opened: list[Path] = []
+    monkeypatch.setattr(_shared.sys, "platform", "darwin")
+    monkeypatch.setattr(_shared, "_run_open", lambda path: opened.append(path))
+    init_project(tmp_path)
+
+    exit_code = main(["build", str(tmp_path), "--open"])
+
+    assert exit_code == 0
+    assert len(opened) == 1
+    assert opened[0].suffix == ".docx"
+
+
+def test_cli_build_open_non_macos_prints_note(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from docx_builder.cli import _shared
+
+    opened: list[Path] = []
+    monkeypatch.setattr(_shared.sys, "platform", "linux")
+    monkeypatch.setattr(_shared, "_run_open", lambda path: opened.append(path))
+    init_project(tmp_path)
+
+    exit_code = main(["build", str(tmp_path), "--open"])
+
+    assert exit_code == 0
+    assert not opened
+    output = capsys.readouterr().out
+    assert "note: --open is currently macOS-only" in output
+
+
+def test_cli_build_pdf_open_opens_the_pdf(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from docx_builder.cli import _shared
+
+    opened: list[Path] = []
+    monkeypatch.setattr(_shared.sys, "platform", "darwin")
+    monkeypatch.setattr(_shared, "_run_open", lambda path: opened.append(path))
+    monkeypatch.setattr(
+        "docx_builder.cli._export.export_pdf",
+        lambda input_docx, output_pdf, update_source=True: output_pdf,
+    )
+    init_project(tmp_path)
+
+    exit_code = main(["build", str(tmp_path), "--pdf", "--open"])
+
+    assert exit_code == 0
+    assert len(opened) == 1
+    assert opened[0].suffix == ".pdf"
+
+
+def test_cli_export_pdf_open_opens_the_pdf(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from docx_builder.cli import _shared
+
+    opened: list[Path] = []
+    monkeypatch.setattr(_shared.sys, "platform", "darwin")
+    monkeypatch.setattr(_shared, "_run_open", lambda path: opened.append(path))
+    monkeypatch.setattr(
+        "docx_builder.cli._export.export_pdf",
+        lambda input_docx, output_pdf, update_source=True: output_pdf,
+    )
+    init_project(tmp_path)
+    main(["build", str(tmp_path)])
+
+    exit_code = main(["export", "pdf", str(tmp_path), "--open"])
+
+    assert exit_code == 0
+    assert len(opened) == 1
+    assert opened[0].suffix == ".pdf"
+
+
+def test_cli_export_pdf_no_update_source_threads_through(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[bool] = []
+
+    def fake_export(input_docx: Path, output_pdf: Path, update_source: bool = True) -> Path:
+        calls.append(update_source)
+        return output_pdf
+
+    monkeypatch.setattr("docx_builder.cli._export.export_pdf", fake_export)
+    init_project(tmp_path)
+    main(["build", str(tmp_path)])
+
+    exit_code = main(["export", "pdf", str(tmp_path), "--no-update-source"])
+
+    assert exit_code == 0
+    assert calls == [False]
+
+
+def test_cli_build_pdf_no_update_source_threads_through(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[bool] = []
+
+    def fake_export(input_docx: Path, output_pdf: Path, update_source: bool = True) -> Path:
+        calls.append(update_source)
+        return output_pdf
+
+    monkeypatch.setattr("docx_builder.cli._export.export_pdf", fake_export)
+    init_project(tmp_path)
+
+    exit_code = main(["build", str(tmp_path), "--pdf", "--no-update-source"])
+
+    assert exit_code == 0
+    assert calls == [False]
+
+
+def test_cli_export_pdf_help_documents_new_flags(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit):
+        main(["export", "pdf", "--help"])
+
+    output = capsys.readouterr().out
+    assert "--no-update-source" in output
+    assert "--open" in output
+
+
+def test_cli_build_help_documents_open_flag(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit):
+        main(["build", "--help"])
+
+    output = capsys.readouterr().out
+    assert "--open" in output
+    assert "--no-update-source" in output
 
 
 def test_cli_init_then_build(tmp_path: Path) -> None:

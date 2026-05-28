@@ -13,11 +13,16 @@ Examples:
   docx_builder build --output Custom.docx
   docx_builder build --template-dir ~/templates
   docx_builder build --pdf
+  docx_builder build --open
+  docx_builder build --pdf --open
+  docx_builder build --pdf --no-update-source
 
 Builds the .docx described by content.yaml in the current directory (or the
-given directory). --pdf chains an export to PDF via Microsoft Word on macOS.
-Open the result in Word and press Cmd+A then F9 to refresh the table of
-contents unless you used --pdf, which refreshes fields for you.
+given directory). --pdf chains an export to PDF via Microsoft Word on macOS,
+which refreshes the table of contents and writes the populated TOC back over
+the source .docx (pass --no-update-source to skip the write-back). --open
+opens the result: the .pdf when combined with --pdf, otherwise the .docx
+(macOS only).
 """
 
 
@@ -30,7 +35,15 @@ def handle(arguments: argparse.Namespace) -> int:
         return 1
     print(f"Saved: {output_path}")
     if arguments.pdf:
-        return _export.run_export(output_path.parent, str(output_path), None)
+        return _export.run_export(
+            output_path.parent,
+            str(output_path),
+            None,
+            update_source=not arguments.no_update_source,
+            open_result=arguments.open,
+        )
+    if arguments.open:
+        _shared.open_file(output_path)
     return 0
 
 
@@ -53,5 +66,15 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         "--pdf",
         action="store_true",
         help="after building, export the result to PDF (macOS + Microsoft Word)",
+    )
+    parser.add_argument(
+        "--no-update-source",
+        action="store_true",
+        help="with --pdf, leave the source .docx untouched instead of writing back the populated TOC",
+    )
+    parser.add_argument(
+        "--open",
+        action="store_true",
+        help="open the result after building: the .pdf with --pdf, otherwise the .docx (macOS only)",
     )
     parser.set_defaults(func=handle)

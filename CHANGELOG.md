@@ -7,15 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- CLI internals refactored from a single `docx_builder/cli.py` into a modular `docx_builder/cli/` package (one module per subcommand, mirroring the sibling `web-view` layout). Pure UX + structure change — no behavioural change to any command's flags, defaults, exit codes, or success-path output. `docx_builder.cli:main` still resolves, so the installed binary is unaffected.
-- `docx_builder --help` and every `docx_builder <command> --help` now show a concrete `Examples:` block plus short prose, and error messages on stderr give actionable next-step guidance (e.g. missing `content.yaml` → suggests `docx_builder init`; `init` on an existing file → suggests `--force`) instead of bare `error: <exception>`.
-
 ### Planned
 
 - Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls (quote, callout, table, code_block, …) without touching the core renderer.
 - PDF-to-YAML transcription workflow — guided protocol for analysing a source PDF (text + visual styles) and emitting a matching `content.yaml`.
+
+## [0.3.0] — 2026-05-28
+
+### Added
+
+- CLI: `--open` on `build` and `export pdf` — opens the result after the command finishes (the `.pdf` with `--pdf` / `export pdf`, otherwise the `.docx` on a plain `build`). macOS-only; on other platforms it prints `note: --open is currently macOS-only` and skips without erroring. (issue #2, item 2)
+- CLI: `--no-update-source` on `export pdf` (honoured by `build --pdf`) — leaves the source `.docx` byte-identical to the pre-export input instead of writing back the populated TOC. Useful when `export pdf --input SomeUserFile.docx` points at a file that must not be overwritten.
+
+### Changed
+
+- **PDF export now finalises the source `.docx` by default.** The JXA calls `document.save()` to persist the Word-populated TOC into the scratch copy, and Python then moves that scratch copy back over the source input path. The source ends with a filled TOC and no manual F9. This reverses the v0.2.0 behaviour (source left untouched); opt back out with `--no-update-source`. The PDF still moves to its destination as before, and Word still writes only inside the scratch directory, so the permission prompt fires only once — the write-back is a plain Python move.
+- `build_summary()` no longer emits the italic F9 instruction note paragraph (`"Note: open in Microsoft Word … press Ctrl+A then F9."`). The TOC field and its in-field placeholder (`"Right-click here and select 'Update Field' …"`) are kept — that placeholder is the field's display text. `strip_toc_note` is retained as a defensive strip on the scratch copy for legacy `--input` documents that still carry the old note.
+
+### Changed (CLI structure, carried from prior unreleased work)
+
+- CLI internals refactored from a single `docx_builder/cli.py` into a modular `docx_builder/cli/` package (one module per subcommand, mirroring the sibling `web-view` layout). Pure UX + structure change — no behavioural change to any command's flags, defaults, exit codes, or success-path output. `docx_builder.cli:main` still resolves, so the installed binary is unaffected.
+- `docx_builder --help` and every `docx_builder <command> --help` now show a concrete `Examples:` block plus short prose, and error messages on stderr give actionable next-step guidance (e.g. missing `content.yaml` → suggests `docx_builder init`; `init` on an existing file → suggests `--force`) instead of bare `error: <exception>`.
 
 ## [0.2.0] — 2026-05-28
 
@@ -61,6 +73,7 @@ Initial release.
 - Tests: 95 pytest covering build, CLI, styles, elements, figure, pagination, renderer, summary, table, skill installer.
 - Quality: ruff strict + mypy strict — both clean.
 
-[Unreleased]: https://github.com/lipex360x/docx_builder/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/lipex360x/docx_builder/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/lipex360x/docx_builder/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/lipex360x/docx_builder/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/lipex360x/docx_builder/releases/tag/v0.1.0

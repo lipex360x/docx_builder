@@ -74,7 +74,7 @@ def _read_page_count(pdf_path: Path) -> int | None:
     return _parse_page_count(result.stdout)
 
 
-def export_pdf(input_docx: Path, output_pdf: Path) -> Path:
+def export_pdf(input_docx: Path, output_pdf: Path, update_source: bool = True) -> Path:
     if sys.platform != "darwin":
         raise ExportError("PDF export requires macOS + Microsoft Word")
     if not _word_is_installed():
@@ -92,7 +92,10 @@ def export_pdf(input_docx: Path, output_pdf: Path) -> Path:
 
     output_pdf.parent.mkdir(parents=True, exist_ok=True)
     shutil.move(str(scratch_pdf), str(output_pdf))
-    scratch_docx.unlink(missing_ok=True)
+    if update_source:
+        shutil.move(str(scratch_docx), str(input_docx))
+    else:
+        scratch_docx.unlink(missing_ok=True)
 
     page_count = _read_page_count(output_pdf)
     label = "page" if page_count == 1 else "pages"

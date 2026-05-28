@@ -35,12 +35,3 @@ def build_summary(document: Document, levels: str = "1-2") -> None:
     end = OxmlElement("w:fldChar")
     end.set(qn("w:fldCharType"), "end")
     run._r.append(end)
-
-    note_paragraph = document.add_paragraph()
-    note_paragraph.paragraph_format.space_before = Pt(12)
-    note_run = note_paragraph.add_run(
-        "Note: open in Microsoft Word, right-click the table of contents "
-        "and select ‘Update Field’, or press Ctrl+A then F9."
-    )
-    note_run.italic = True
-    note_run.font.size = Pt(8)
