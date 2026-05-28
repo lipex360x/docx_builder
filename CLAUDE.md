@@ -16,6 +16,52 @@ Always reply to the user in **Brazilian Portuguese (PT-BR)**, not European Portu
 
 Documentation files (CLAUDE.md, code comments, content) stay in English as already established.
 
+## Agent delegation — non-negotiable
+
+This repo has two specialized subagents under `.claude/agents/`. **When the user asks you to work on a GitHub issue, you do not write the work yourself — you delegate to the correct agent based on the issue's label.**
+
+| Issue label | Agent | What it does |
+|---|---|---|
+| `needs-design` | `docx-builder-architect` | Drives the design pass: enumerates forks, proposes options with trade-offs, captures user decisions across rounds, publishes the final design + AC, flips the label to `enhancement`. Read-only on code. |
+| `enhancement` / `bug` / `polish` (with concrete AC) | `docx-builder-implementer` | Implements end-to-end: TDD red → green → refactor, follows the quality pipeline, iterates through pre-commit failures, commits, pushes, opens the PR, writes a barriers report under `.dev-quality-logs/`. |
+
+### Before invoking either agent
+
+You (the main session) are responsible for:
+
+1. **Confirming the issue label.** Fetch with `gh issue view <N> --repo lipex360x/docx_builder --json labels`. The wrong agent on the wrong label is a process violation.
+2. **For implementer only — checking out the branch.** The implementer expects to start on `feat/<slug>-<N>`, `fix/<slug>-<N>`, or `chore/<slug>-<N>`. Compose the branch name from the issue title using the convention documented in the "Branch per issue" section, then:
+
+   ```bash
+   git checkout main && git pull
+   git checkout -b <type>/<slug>-<N>
+   ```
+
+   The implementer verifies via `git branch --show-current` and stops if it lands on `main`.
+
+3. **For architect — no branch prep needed.** The architect operates against `main` and only touches `.designs/` (gitignored) and the GitHub issue.
+
+### When the agents return
+
+- **Implementer** returns a short status block (PR url, commit count, pre-commit iterations, barriers report path). Read the barriers report yourself — it captures friction points that may signal a needed update to the agent prompt or to a `dev-quality` rule.
+- **Architect** returns either `DESIGN DRAFT ready` (needs user input on the forks) or `DESIGN FINALIZED` (issue body updated, label flipped, ready for implementer). In the draft case, you ask the user the forks via `AskUserQuestion`, append decisions to `.designs/issue-<N>.md`, then re-invoke the architect.
+
+### When NOT to delegate
+
+The agents are for **issue-driven work**. Do not delegate when the user:
+
+- Asks an exploratory question ("how does X work in this repo?").
+- Requests a small inline change that does not correspond to an open issue (e.g. typo fix in `README.md`).
+- Wants a discussion ("should we approach Y like this?").
+
+For those, you respond directly. The agents are tools, not the default.
+
+### What you never do
+
+- Write production code yourself when an issue exists. Open the issue, ask for the right agent, or delegate immediately.
+- Skip the label check. A `needs-design` issue is not implementer territory.
+- Re-invoke the architect without updating `.designs/issue-<N>.md` first — the architect wakes blind otherwise.
+
 ## Layout
 
 ```

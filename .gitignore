@@ -16,5 +16,8 @@ build/
 
 logs/
 
+.dev-quality-logs/
+.designs/
+
 *.docx
 *.pdf
