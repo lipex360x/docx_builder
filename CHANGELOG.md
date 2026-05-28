@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- CLI internals refactored from a single `docx_builder/cli.py` into a modular `docx_builder/cli/` package (one module per subcommand, mirroring the sibling `web-view` layout). Pure UX + structure change — no behavioural change to any command's flags, defaults, exit codes, or success-path output. `docx_builder.cli:main` still resolves, so the installed binary is unaffected.
+- `docx_builder --help` and every `docx_builder <command> --help` now show a concrete `Examples:` block plus short prose, and error messages on stderr give actionable next-step guidance (e.g. missing `content.yaml` → suggests `docx_builder init`; `init` on an existing file → suggests `--force`) instead of bare `error: <exception>`.
+
 ### Planned
 
 - Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls (quote, callout, table, code_block, …) without touching the core renderer.

@@ -102,7 +102,7 @@ def test_cli_build_pdf_flag_invokes_export(
         calls.append((input_docx, output_pdf))
         return output_pdf
 
-    monkeypatch.setattr("docx_builder.cli.export_pdf", fake_export)
+    monkeypatch.setattr("docx_builder.cli._export.export_pdf", fake_export)
     init_project(tmp_path)
 
     exit_code = main(["build", str(tmp_path), "--pdf"])
@@ -120,3 +120,70 @@ def test_cli_init_then_build(tmp_path: Path) -> None:
 
     docx_files = list(tmp_path.glob("*.docx"))
     assert len(docx_files) == 1
+
+
+def test_root_help_exits_zero_with_description(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as exit_info:
+        main(["--help"])
+
+    assert exit_info.value.code == 0
+    output = capsys.readouterr().out
+    assert "docx_builder" in output
+
+
+def test_build_help_has_examples_block(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as exit_info:
+        main(["build", "--help"])
+
+    assert exit_info.value.code == 0
+    output = capsys.readouterr().out
+    assert "Examples:" in output
+    assert "docx_builder build" in output
+
+
+def test_init_help_has_examples_block(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as exit_info:
+        main(["init", "--help"])
+
+    assert exit_info.value.code == 0
+    output = capsys.readouterr().out
+    assert "Examples:" in output
+    assert "docx_builder init" in output
+
+
+def test_export_pdf_help_has_examples_block(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as exit_info:
+        main(["export", "pdf", "--help"])
+
+    assert exit_info.value.code == 0
+    output = capsys.readouterr().out
+    assert "Examples:" in output
+    assert "docx_builder export pdf" in output
+
+
+def test_install_skill_help_has_examples_block(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as exit_info:
+        main(["install", "skill", "--help"])
+
+    assert exit_info.value.code == 0
+    output = capsys.readouterr().out
+    assert "Examples:" in output
+    assert "docx_builder install skill" in output
+
+
+def test_build_missing_content_suggests_init(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    exit_code = main(["build", str(tmp_path)])
+
+    assert exit_code == 1
+    error = capsys.readouterr().err
+    assert "docx_builder init" in error
+
+
+def test_init_existing_suggests_force(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    (tmp_path / "content.yaml").write_text("existing")
+
+    exit_code = main(["init", str(tmp_path)])
+
+    assert exit_code == 1
+    error = capsys.readouterr().err
+    assert "--force" in error
