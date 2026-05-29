@@ -19,6 +19,8 @@ function run(argv) {
   delay(1);
 
   document.save();
-  document.saveAs({ fileName: outputPath, fileFormat: "format PDF" });
+  if (outputPath) {
+    document.saveAs({ fileName: outputPath, fileFormat: "format PDF" });
+  }
   document.close({ saving: "no" });
 }

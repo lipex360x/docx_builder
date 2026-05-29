@@ -49,13 +49,22 @@ def _word_is_installed() -> bool:
     return Path(_WORD_APPLICATION).exists()
 
 
-def _run_jxa(input_docx: Path, output_pdf: Path) -> None:
+def _run_jxa(input_docx: Path, output_pdf: Path | None) -> None:
     script_resource = files("docx_builder.scripts").joinpath("docx_to_pdf.jxa")
+    arguments = ["osascript", "-l", "JavaScript"]
     with as_file(script_resource) as script_path:
-        subprocess.run(
-            ["osascript", "-l", "JavaScript", str(script_path), str(input_docx), str(output_pdf)],
-            check=True,
-        )
+        arguments.append(str(script_path))
+        arguments.append(str(input_docx))
+        if output_pdf is not None:
+            arguments.append(str(output_pdf))
+        subprocess.run(arguments, check=True)
+
+
+def _require_word_environment() -> None:
+    if sys.platform != "darwin":
+        raise ExportError("PDF export requires macOS + Microsoft Word")
+    if not _word_is_installed():
+        raise ExportError(f"Microsoft Word not found at {_WORD_APPLICATION}")
 
 
 def _parse_page_count(mdls_output: str) -> int | None:
@@ -75,10 +84,7 @@ def _read_page_count(pdf_path: Path) -> int | None:
 
 
 def export_pdf(input_docx: Path, output_pdf: Path, update_source: bool = True) -> Path:
-    if sys.platform != "darwin":
-        raise ExportError("PDF export requires macOS + Microsoft Word")
-    if not _word_is_installed():
-        raise ExportError(f"Microsoft Word not found at {_WORD_APPLICATION}")
+    _require_word_environment()
     if not input_docx.exists():
         raise ExportError(f"input .docx not found: {input_docx}")
 
@@ -102,3 +108,19 @@ def export_pdf(input_docx: Path, output_pdf: Path, update_source: bool = True) -
     count_display = page_count if page_count is not None else "?"
     print(f"Exported: {output_pdf} ({count_display} {label})")
     return output_pdf
+
+
+def finalize_source(input_docx: Path) -> Path:
+    _require_word_environment()
+    if not input_docx.exists():
+        raise ExportError(f"input .docx not found: {input_docx}")
+
+    SCRATCH_DIRECTORY.mkdir(parents=True, exist_ok=True)
+    scratch_docx = SCRATCH_DIRECTORY / input_docx.name
+
+    shutil.copyfile(input_docx, scratch_docx)
+    strip_toc_note(scratch_docx)
+    _run_jxa(scratch_docx, None)
+
+    shutil.move(str(scratch_docx), str(input_docx))
+    return input_docx
