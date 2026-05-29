@@ -158,7 +158,7 @@ Any section may appear in either `front_matter` or `sections`. The distinction i
 
 ### Legacy: `hide_page_counter`
 
-The flag `hide_page_counter: true` on individual section items still works but is **deprecated**: `build` prints a one-time `warning:` to stderr when it sees it, and it is scheduled for removal in v0.4. Use the `front_matter` block instead — it makes intent explicit and avoids repetition. (The undocumented `DOCX_BUILDER_NO_DEPRECATION=1` env var silences the warning for advanced users.)
+The flag `hide_page_counter: true` on individual section items still works but is **deprecated**: `build` prints a one-time `warning:` to stderr when it sees it, and it is scheduled for removal in v0.5. Use the `front_matter` block instead — it makes intent explicit and avoids repetition. (The undocumented `DOCX_BUILDER_NO_DEPRECATION=1` env var silences the warning for advanced users.)
 
 ## Styles — cascade and editing
 

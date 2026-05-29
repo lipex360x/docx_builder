@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned
+
+- Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls (quote, callout, table, code_block, …) without touching the core renderer.
+- PDF-to-YAML transcription workflow — guided protocol for analysing a source PDF (text + visual styles) and emitting a matching `content.yaml`.
+
+## [0.4.0] — 2026-05-29
+
 ### Added
 
 - CLI: `--no-finalize` on `build` — skips the Word TOC-finalize pass entirely, keeping `build` pure and fast (useful for CI/scripting on macOS where launching Word is undesirable).
@@ -14,25 +21,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **`docx_builder build` now finalizes the TOC by default.** When the document declares a `toc` section (in `front_matter:` or `sections:`), after writing the `.docx` `build` drives Microsoft Word to update every table of contents and all fields, then writes the populated `.docx` back over the source — no manual F9, no PDF. TOC-less documents never launch Word, so they cost nothing extra. Off macOS or without Word, `build` does not error: it leaves the placeholder TOC field in place, prints a short `note:` to stderr, and exits 0. The shared Word-driving core was extracted into `finalize_source()` (the `export_pdf` path minus the PDF save); `--pdf` finalizes via the export step and does not double-launch Word. Pass `--no-finalize` to opt out.
+- `--open` with `--pdf` (and `export pdf --open`) now opens **both** the resulting `.pdf` and the finalized `.docx` (the latter in Microsoft Word via `open -a`), instead of only the `.pdf`. Plain `build --open` still opens just the `.docx`. Closes the last gap versus a hand-rolled export script.
+- `docx_builder init` success message reworded from `Initialized: <path>` to `Created: <path>. Edit it directly, or ask Claude Code (docx_builder skill).` (issue #2, item 4)
+- `docs/styles-reference.md` gained a `## Known macOS Word quirks` section documenting Word's per-directory permission prompt, the broken AppleScript `save as`, and the unreliable cached `<Pages>` count. (issue #2, item 5)
 
 ### Fixed
 
 - Headings (`h1`/`h2`/`h3`) no longer inherit Word's built-in blue theme colour. The bundled defaults now set `color: "#000000"` for all three, applied as direct run formatting so it overrides the `Heading N` style colour. Override per-heading via `styles:` as before. (issue #2, item 1)
 
-### Changed
-
-- `--open` with `--pdf` (and `export pdf --open`) now opens **both** the resulting `.pdf` and the finalized `.docx` (the latter in Microsoft Word via `open -a`), instead of only the `.pdf`. Plain `build --open` still opens just the `.docx`. Closes the last gap versus a hand-rolled export script.
-- `docx_builder init` success message reworded from `Initialized: <path>` to `Created: <path>. Edit it directly, or ask Claude Code (docx_builder skill).` (issue #2, item 4)
-- `docs/styles-reference.md` gained a `## Known macOS Word quirks` section documenting Word's per-directory permission prompt, the broken AppleScript `save as`, and the unreliable cached `<Pages>` count. (issue #2, item 5)
-
 ### Deprecated
 
-- `hide_page_counter: true` on individual sections now prints a one-time `warning:` to stderr per build (suppress with `DOCX_BUILDER_NO_DEPRECATION=1`). Use the `front_matter:` block instead; the flag is scheduled for removal in v0.4. (issue #2, item 3)
-
-### Planned
-
-- Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls (quote, callout, table, code_block, …) without touching the core renderer.
-- PDF-to-YAML transcription workflow — guided protocol for analysing a source PDF (text + visual styles) and emitting a matching `content.yaml`.
+- `hide_page_counter: true` on individual sections now prints a one-time `warning:` to stderr per build (suppress with `DOCX_BUILDER_NO_DEPRECATION=1`). Use the `front_matter:` block instead; the flag is scheduled for removal in v0.5. (issue #2, item 3)
 
 ## [0.3.0] — 2026-05-28
 
@@ -95,7 +94,8 @@ Initial release.
 - Tests: 95 pytest covering build, CLI, styles, elements, figure, pagination, renderer, summary, table, skill installer.
 - Quality: ruff strict + mypy strict — both clean.
 
-[Unreleased]: https://github.com/lipex360x/docx_builder/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/lipex360x/docx_builder/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/lipex360x/docx_builder/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/lipex360x/docx_builder/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/lipex360x/docx_builder/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/lipex360x/docx_builder/releases/tag/v0.1.0

@@ -197,7 +197,7 @@ sections: [...]
 sections: [...]
 ```
 
-The legacy `hide_page_counter: true` flag on individual section items still works but is **deprecated** — `build` now prints a one-time `warning:` to stderr when it is present, and the flag is scheduled for removal in v0.4. New documents should use `front_matter:` instead — it is declarative, free of repetition, and surfaces intent at the top of the file.
+The legacy `hide_page_counter: true` flag on individual section items still works but is **deprecated** — `build` now prints a one-time `warning:` to stderr when it is present, and the flag is scheduled for removal in v0.5. New documents should use `front_matter:` instead — it is declarative, free of repetition, and surfaces intent at the top of the file.
 
 ## Section type reference
 
