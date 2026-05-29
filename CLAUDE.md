@@ -155,7 +155,7 @@ A `docx_builder export pdf` subcommand is planned — see [issue #1](https://git
 
 Semantic Versioning. Tagged releases on `main`. Tag format: `vX.Y.Z`.
 
-Current release: **v0.1.0** (initial release).
+Current release: **v0.3.0**.
 
 Workflow for releasing:
 
@@ -264,7 +264,7 @@ Why edit the issue body rather than the PR body or just letting the merge close 
 uv sync
 uv run pytest
 uv run ruff check docx_builder tests
-uv run mypy docx_builder
+uv run --with mypy mypy docx_builder
 ```
 
 TDD: write failing test first, implement minimum to pass, refactor.
