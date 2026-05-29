@@ -54,6 +54,14 @@ def print_export_error(message: str) -> None:
     print(message, file=sys.stderr)
 
 
+def print_finalize_skipped() -> None:
+    print(
+        "note: TOC left unpopulated — finalizing requires macOS + Microsoft Word. "
+        "Open in Word (Cmd+A, F9) or run 'docx_builder export pdf'.",
+        file=sys.stderr,
+    )
+
+
 def print_install_aborted() -> None:
     print(
         "No scope chosen — skill not installed.\nPick one explicitly: docx_builder install skill --scope local|global",
