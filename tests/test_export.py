@@ -257,3 +257,18 @@ def test_export_pdf_real_word(tmp_path: Path) -> None:
     export.export_pdf(source, destination)
 
     assert destination.exists()
+
+
+@pytest.mark.requires_word
+def test_finalize_source_real_word(tmp_path: Path) -> None:
+    import os
+
+    if os.environ.get("DOCX_BUILDER_TEST_WORD") != "1":
+        pytest.skip("set DOCX_BUILDER_TEST_WORD=1 to run the real Word export test")
+
+    source = _make_docx_with_note(tmp_path / "Report.docx")
+
+    export.finalize_source(source)
+
+    finalized = Document(str(source))
+    assert not any("Note: open in Microsoft Word" in paragraph.text for paragraph in finalized.paragraphs)
