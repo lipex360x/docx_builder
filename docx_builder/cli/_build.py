@@ -4,6 +4,7 @@ import argparse
 
 from docx_builder.builder import build, has_toc
 from docx_builder.export import ExportError, finalize_source
+from docx_builder.report import format_report, report_for
 
 from . import _export, _shared
 
@@ -40,6 +41,7 @@ def handle(arguments: argparse.Namespace) -> int:
         _shared.print_content_not_found(target)
         return 1
     print(f"Saved: {output_path}")
+    print(format_report(report_for(output_path)))
     if arguments.pdf:
         return _export.run_export(
             output_path.parent,
