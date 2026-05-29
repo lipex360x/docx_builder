@@ -65,6 +65,27 @@ def test_cli_build_returns_zero_on_success(tmp_path: Path, capsys: pytest.Captur
     assert "Saved:" in output
 
 
+def test_cli_build_prints_report(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    init_project(tmp_path)
+
+    main(["build", str(tmp_path)])
+
+    output = capsys.readouterr().out
+    assert "Words:" in output
+    assert "Reading time:" in output
+    assert "Em-dashes (U+2014):" in output
+
+
+def test_cli_build_report_flags_em_dashes(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    (tmp_path / "content.yaml").write_text('sections:\n  - call: body\n    text: "Hello — world"\n')
+
+    main(["build", str(tmp_path)])
+
+    output = capsys.readouterr().out
+    assert "Em-dashes (U+2014): 1" in output
+    assert "remove" in output.lower()
+
+
 def test_cli_build_missing_content_returns_error(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     exit_code = main(["build", str(tmp_path)])
 

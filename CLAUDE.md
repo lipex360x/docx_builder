@@ -73,7 +73,9 @@ docx_builder/
     _init.py          # init command; register() + handle()
     _export.py        # export pdf command; register() + handle()
     _install.py       # install skill command (interactive scope prompt)
-  builder.py          # build() + init_project()
+  builder.py          # build() + init_project() + has_toc()
+  export.py           # export_pdf() + finalize_source() via Word + JXA (macOS)
+  report.py           # post-build report: words, reading time, em-dash counter
   elements.py         # h1, h2, h3, body, bullet, bold_lead, reference, page_break
   figure.py           # figure(), figure_pair()
   pagination.py       # PAGE / NUMPAGES footer (style-driven)
@@ -89,7 +91,7 @@ docx_builder/
     default_styles.yaml        # Built-in style defaults
 docs/
   styles-reference.md          # Full style schema (no-AI manual)
-tests/                # pytest suite (95 tests)
+tests/                # pytest suite (163 tests)
 conftest.py           # session-scoped cover_docx fixture
 CHANGELOG.md          # Keep a Changelog format; SemVer
 ```
@@ -114,7 +116,7 @@ For active development on the package, prefer `--editable`. The global `~/.local
 Then from any directory:
 
 ```bash
-docx_builder init                       # scaffold content.yaml + images/
+docx_builder init                       # write a marker content.yaml (no images/ dir)
 docx_builder build                      # build using content.yaml in cwd
 docx_builder build /some/dir            # build in another dir
 docx_builder build --output Custom.docx
@@ -141,21 +143,17 @@ Visual properties are controlled by the optional `styles:` block in `content.yam
 
 ## DOCX → PDF workflow
 
-Today, finalising to PDF is manual:
+`docx_builder export pdf` (and `build --pdf`) drive Microsoft Word via JXA on macOS: they update every TOC and all fields, then save, and by default write the populated `.docx` back over the source. `build` alone also finalises the TOC automatically when the document declares one (no PDF needed). Shipped in v0.2.0 / v0.4.0; see [issue #1](https://github.com/lipex360x/docx_builder/issues/1).
 
-1. Open the `.docx` in Microsoft Word.
-2. `Cmd+A` then `F9` to update all fields (fills the TOC).
-3. `File → Save As… → PDF`.
+Manual fallback (off macOS or without Word): open the `.docx` in Word, `Cmd+A` then `F9` to update fields, then `File` → `Save As…` → `PDF`.
 
-A `docx_builder export pdf` subcommand is planned — see [issue #1](https://github.com/lipex360x/docx_builder/issues/1).
-
-`libreoffice --headless --convert-to pdf` is intentionally avoided — it changes fonts, spacing and field rendering. Word's renderer matches what a marker sees.
+`libreoffice --headless --convert-to pdf` is intentionally avoided: it changes fonts, spacing and field rendering. Word's renderer matches what a marker sees.
 
 ## Versioning
 
 Semantic Versioning. Tagged releases on `main`. Tag format: `vX.Y.Z`.
 
-Current release: **v0.3.0**.
+Current release: **v0.4.0**.
 
 Workflow for releasing:
 
@@ -210,6 +208,7 @@ Before closing this issue:
 - [ ] **CHANGELOG.md** — move the entry from `[Unreleased]` into a new `[X.Y.Z]` section with the date if shipping as a tagged release. Otherwise leave under `[Unreleased]`.
 - [ ] **`docx_builder/skill/SKILL.md`** — update so future Claude Code sessions know about the change.
 - [ ] **`CLAUDE.md`** — update only if the change affects developer workflow, repo conventions, or available commands.
+- [ ] **`README.md`** — update if the change affects user-facing commands, flags, build output, install steps, or the project structure tree.
 - [ ] **`docs/styles-reference.md`** — update if any styling field gained or lost behaviour.
 - [ ] **Global skill sync** — `cp docx_builder/skill/SKILL.md ~/www/claude/.brain/skills/docx_builder/SKILL.md`
 - [ ] **Editable install check** — if user is on snapshot install, run `uv tool install --reinstall .` to pick up changes. Editable installs propagate automatically.
@@ -271,7 +270,7 @@ TDD: write failing test first, implement minimum to pass, refactor.
 
 Quality gates (all must be green before commit):
 
-- pytest — 95 tests, ~1s wall time
+- pytest — 163 tests, ~2s wall time
 - ruff strict ruleset
 - mypy strict
 - Bundled defaults in `default_styles.yaml` must match the values asserted in `tests/test_elements.py` (changing one without the other breaks the test suite — intentional, prevents silent drift)

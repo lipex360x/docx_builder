@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `docx_builder build` now prints a short post-build report: word count, estimated reading time (at 200 wpm), a page-count line, and an em-dash (`U+2014`) counter. When any em-dash is present the line is flagged `<- remove before shipping` so they are easy to spot and strip. Page count is reported as `n/a` because a plain `build` cannot know it ahead of time — only the Word/PDF export path produces the real count. The report is non-destructive: em-dashes are counted and flagged, never auto-removed. New module `docx_builder/report.py` (`analyse`, `report_for`, `format_report`).
+
 ### Planned
 
 - Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls (quote, callout, table, code_block, …) without touching the core renderer.
