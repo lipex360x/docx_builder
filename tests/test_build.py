@@ -5,7 +5,7 @@ from pathlib import Path
 import yaml
 from docx import Document
 
-from docx_builder.builder import build
+from docx_builder.builder import build, has_toc
 
 _MINIMAL_COVER: dict[str, object] = {
     "template": "Cover.docx",
@@ -18,6 +18,27 @@ _MINIMAL_COVER: dict[str, object] = {
 def _write_yaml(path: Path, data: dict[str, object]) -> None:
     with open(path, "w") as content_file:
         yaml.dump(data, content_file)
+
+
+def test_has_toc_detects_toc_in_front_matter(tmp_path: Path) -> None:
+    content = {"front_matter": [{"call": "toc", "levels": "1-2"}], "sections": [{"call": "h1", "text": "X"}]}
+    _write_yaml(tmp_path / "content.yaml", content)
+
+    assert has_toc(tmp_path) is True
+
+
+def test_has_toc_detects_toc_in_sections(tmp_path: Path) -> None:
+    content = {"sections": [{"call": "toc"}, {"call": "h1", "text": "X"}]}
+    _write_yaml(tmp_path / "content.yaml", content)
+
+    assert has_toc(tmp_path) is True
+
+
+def test_has_toc_false_when_no_toc(tmp_path: Path) -> None:
+    content = {"sections": [{"call": "h1", "text": "X"}, {"call": "body", "text": "Y"}]}
+    _write_yaml(tmp_path / "content.yaml", content)
+
+    assert has_toc(tmp_path) is False
 
 
 def test_build_creates_docx(tmp_path: Path, cover_dir: Path) -> None:

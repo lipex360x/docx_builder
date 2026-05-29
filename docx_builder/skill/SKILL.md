@@ -29,6 +29,7 @@ docx_builder build            # build using content.yaml in cwd
 docx_builder build /path/dir  # build from another directory
 docx_builder build --output Custom.docx
 docx_builder build --template-dir ~/templates
+docx_builder build --no-finalize  # skip the Word TOC-finalize pass (pure/fast; CI)
 docx_builder build --pdf      # build then export to PDF in one shot (macOS + Word)
 docx_builder build --open     # build, then open the .docx (macOS)
 docx_builder build --pdf --open  # build, export, then open BOTH the .pdf and the .docx in Word (macOS)
@@ -39,13 +40,13 @@ docx_builder export pdf --open  # convert then open both the .pdf and the finali
 
 `init` does NOT scaffold a placeholder document. It only writes a tiny marker file pointing back at this skill. You (the assistant) are expected to author the real `content.yaml` based on what the user actually wants to build — CV, report, manual, paper, contract, fiction — each gets a tailored YAML.
 
-After a plain `build`, the TOC is still an unfilled Word field — `docx_builder build` uses `python-docx`, which cannot populate it. Open the `.docx` in Word and press `Cmd+A` then `F9` to fill it, or use the export path: on macOS with Microsoft Word installed, `docx_builder export pdf` / `build --pdf` drives Word, fills the TOC, and (by default) writes the populated `.docx` back over the source — see below.
+`docx_builder build` uses `python-docx`, which is not a renderer and cannot populate a TOC on its own. To fill the TOC and its page numbers something must drive Microsoft Word. As of v0.4, **`build` does this automatically by default**: when the document declares a `toc` section, after writing the `.docx` `build` drives Word (macOS + Microsoft Word) to update every table of contents and all fields, then writes the populated `.docx` back over the source — no manual F9, no PDF. TOC-less documents (CVs, one-pagers) never launch Word, so they cost nothing extra. If the environment is not macOS or Word is not installed, `build` does not error: it leaves the placeholder TOC field in place, prints a short `note:` to stderr, and exits 0 — open the `.docx` in Word and press `Cmd+A` then `F9`, or run `docx_builder export pdf`. Pass `--no-finalize` to skip the Word pass entirely (useful for CI/scripting on macOS where launching Word is undesirable). The `--pdf` path finalizes via the export step (see below) and does not double-launch Word.
 
 ## PDF export (macOS + Microsoft Word)
 
 ```bash
 docx_builder export pdf [DIR] [--input FILE] [--output FILE] [--no-update-source] [--open]
-docx_builder build [DIR] --pdf [--no-update-source] [--open]
+docx_builder build [DIR] [--no-finalize] [--pdf] [--no-update-source] [--open]
 ```
 
 - Input defaults to the same filename `build` would produce (`cover.output` template → default pattern); override with `--input`.
@@ -205,7 +206,7 @@ styles:
 | `content.yaml not found in <dir>` | Wrong cwd, or `init` was never run | `cd` into the project dir, or run `docx_builder init` |
 | `cover template not found: <name>` | Path in `cover.template` doesn't resolve | Use an absolute path, a relative path with `/`, or place the file in `--template-dir` |
 | `unknown call: '<x>'` | Section dict has an unrecognised `call` value | Use a value from the section types table above |
-| TOC is empty or shows the wrong pages | Plain `build` cannot fill the TOC (no renderer) | Open the `.docx`, `Cmd+A` then `F9`, or run `docx_builder export pdf` / `build --pdf`, which fills it and finalises the source by default |
+| TOC is empty or shows the wrong pages | `build` finalizes the TOC by default, but the pass was skipped: `--no-finalize` was passed, or the environment is not macOS + Microsoft Word (a `note:` was printed to stderr) | Re-run `build` on macOS with Word and without `--no-finalize`, or open the `.docx`, `Cmd+A` then `F9`, or run `docx_builder export pdf` / `build --pdf` |
 | Image missing in output | `figure.filename` not under `<project_dir>/images/` | Place the image under `images/`, or rename to match |
 
 ## Output filename pattern

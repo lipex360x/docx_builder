@@ -1,9 +1,19 @@
 from pathlib import Path
 
 import pytest
+import yaml
 
 from docx_builder.builder import _normalise_sections, init_project
 from docx_builder.cli import main
+
+
+def _write_toc_content(directory: Path) -> None:
+    content = {
+        "front_matter": [{"call": "toc", "levels": "1-2"}],
+        "sections": [{"call": "h1", "text": "Introduction"}],
+    }
+    with open(directory / "content.yaml", "w") as content_file:
+        yaml.dump(content, content_file)
 
 
 def _flagged_sections(count: int) -> dict[str, list[dict[str, object]]]:
@@ -113,6 +123,82 @@ def test_cli_build_pdf_flag_invokes_export(
 
     assert exit_code == 0
     assert len(calls) == 1
+
+
+def test_cli_build_finalizes_when_toc_present(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    finalized: list[Path] = []
+    monkeypatch.setattr("docx_builder.cli._build.finalize_source", lambda source: finalized.append(source) or source)
+    _write_toc_content(tmp_path)
+
+    exit_code = main(["build", str(tmp_path)])
+
+    assert exit_code == 0
+    assert len(finalized) == 1
+    assert finalized[0].suffix == ".docx"
+
+
+def test_cli_build_skips_finalize_without_toc(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    finalized: list[Path] = []
+    monkeypatch.setattr("docx_builder.cli._build.finalize_source", lambda source: finalized.append(source) or source)
+    init_project(tmp_path)
+
+    exit_code = main(["build", str(tmp_path)])
+
+    assert exit_code == 0
+    assert not finalized
+
+
+def test_cli_build_no_finalize_flag_skips_finalize(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    finalized: list[Path] = []
+    monkeypatch.setattr("docx_builder.cli._build.finalize_source", lambda source: finalized.append(source) or source)
+    _write_toc_content(tmp_path)
+
+    exit_code = main(["build", str(tmp_path), "--no-finalize"])
+
+    assert exit_code == 0
+    assert not finalized
+
+
+def test_cli_build_finalize_unavailable_degrades_with_note(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from docx_builder import export
+
+    def fake_finalize(source: Path) -> Path:
+        raise export.ExportError("PDF export requires macOS + Microsoft Word")
+
+    monkeypatch.setattr("docx_builder.cli._build.finalize_source", fake_finalize)
+    _write_toc_content(tmp_path)
+
+    exit_code = main(["build", str(tmp_path)])
+
+    assert exit_code == 0
+    error = capsys.readouterr().err
+    assert "TOC left unpopulated" in error
+    assert "Word" in error
+
+
+def test_cli_build_pdf_does_not_double_finalize(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    finalized: list[Path] = []
+    monkeypatch.setattr("docx_builder.cli._build.finalize_source", lambda source: finalized.append(source) or source)
+    monkeypatch.setattr(
+        "docx_builder.cli._export.export_pdf",
+        lambda input_docx, output_pdf, update_source=True: output_pdf,
+    )
+    _write_toc_content(tmp_path)
+
+    exit_code = main(["build", str(tmp_path), "--pdf"])
+
+    assert exit_code == 0
+    assert not finalized
+
+
+def test_cli_build_help_documents_no_finalize(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit):
+        main(["build", "--help"])
+
+    output = capsys.readouterr().out
+    assert "--no-finalize" in output
 
 
 def test_cli_build_open_opens_the_docx(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

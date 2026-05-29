@@ -188,6 +188,62 @@ def test_parse_page_count_returns_none_when_absent() -> None:
     assert export._parse_page_count("kMDItemNumberOfPages = (null)\n") is None
 
 
+def _fake_finalize_run_factory(scratch_dir: Path, recorded: dict[str, Any]) -> Any:
+    def fake_run(command: list[str], **_keyword_arguments: Any) -> subprocess.CompletedProcess[str]:
+        name = Path(command[0]).name
+        if name == "osascript":
+            scratch_docx = Path(command[-1])
+            assert scratch_docx.parent == scratch_dir
+            recorded["jxa_arguments"] = command[4:]
+            recorded["stripped_in_scratch"] = export.TOC_NOTE_NEEDLE not in _docx_text(scratch_docx)
+            document = Document(str(scratch_docx))
+            document.add_paragraph("WORD_POPULATED_TOC")
+            document.save(str(scratch_docx))
+            return subprocess.CompletedProcess(command, 0, "", "")
+        raise AssertionError(f"unexpected command: {command}")
+
+    return fake_run
+
+
+def test_finalize_source_writes_populated_docx_back(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(export.sys, "platform", "darwin")
+    monkeypatch.setattr(export, "_word_is_installed", lambda: True)
+
+    scratch_dir = tmp_path / "scratch"
+    monkeypatch.setattr(export, "SCRATCH_DIRECTORY", scratch_dir)
+
+    source = _make_docx_with_note(tmp_path / "Report.docx")
+
+    recorded: dict[str, Any] = {}
+    monkeypatch.setattr(subprocess, "run", _fake_finalize_run_factory(scratch_dir, recorded))
+
+    export.finalize_source(source)
+
+    assert not list(scratch_dir.glob("*"))
+    assert recorded["stripped_in_scratch"] is True
+    assert len(recorded["jxa_arguments"]) == 1
+    source_text = _docx_text(source)
+    assert export.TOC_NOTE_NEEDLE not in source_text
+    assert "WORD_POPULATED_TOC" in source_text
+
+
+def test_finalize_source_rejects_non_macos(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(export.sys, "platform", "linux")
+    source = _make_docx_with_note(tmp_path / "Report.docx")
+
+    with pytest.raises(export.ExportError, match="requires macOS"):
+        export.finalize_source(source)
+
+
+def test_finalize_source_rejects_when_word_missing(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(export.sys, "platform", "darwin")
+    monkeypatch.setattr(export, "_word_is_installed", lambda: False)
+    source = _make_docx_with_note(tmp_path / "Report.docx")
+
+    with pytest.raises(export.ExportError, match="Microsoft Word"):
+        export.finalize_source(source)
+
+
 @pytest.mark.requires_word
 def test_export_pdf_real_word(tmp_path: Path) -> None:
     import os
@@ -201,3 +257,18 @@ def test_export_pdf_real_word(tmp_path: Path) -> None:
     export.export_pdf(source, destination)
 
     assert destination.exists()
+
+
+@pytest.mark.requires_word
+def test_finalize_source_real_word(tmp_path: Path) -> None:
+    import os
+
+    if os.environ.get("DOCX_BUILDER_TEST_WORD") != "1":
+        pytest.skip("set DOCX_BUILDER_TEST_WORD=1 to run the real Word export test")
+
+    source = _make_docx_with_note(tmp_path / "Report.docx")
+
+    export.finalize_source(source)
+
+    finalized = Document(str(source))
+    assert not any("Note: open in Microsoft Word" in paragraph.text for paragraph in finalized.paragraphs)
