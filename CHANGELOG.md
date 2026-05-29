@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- CLI: `--no-finalize` on `build` — skips the Word TOC-finalize pass entirely, keeping `build` pure and fast (useful for CI/scripting on macOS where launching Word is undesirable).
+
+### Changed
+
+- **`docx_builder build` now finalizes the TOC by default.** When the document declares a `toc` section (in `front_matter:` or `sections:`), after writing the `.docx` `build` drives Microsoft Word to update every table of contents and all fields, then writes the populated `.docx` back over the source — no manual F9, no PDF. TOC-less documents never launch Word, so they cost nothing extra. Off macOS or without Word, `build` does not error: it leaves the placeholder TOC field in place, prints a short `note:` to stderr, and exits 0. The shared Word-driving core was extracted into `finalize_source()` (the `export_pdf` path minus the PDF save); `--pdf` finalizes via the export step and does not double-launch Word. Pass `--no-finalize` to opt out.
+
 ### Fixed
 
 - Headings (`h1`/`h2`/`h3`) no longer inherit Word's built-in blue theme colour. The bundled defaults now set `color: "#000000"` for all three, applied as direct run formatting so it overrides the `Heading N` style colour. Override per-heading via `styles:` as before. (issue #2, item 1)

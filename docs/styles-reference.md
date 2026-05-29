@@ -242,7 +242,7 @@ Field names and value formats are stable — anything documented here is support
 
 ## Known macOS Word quirks
 
-These only matter if you bypass the CLI and drive Microsoft Word yourself (custom scripts). `docx_builder export pdf` already handles them for you.
+These only matter if you bypass the CLI and drive Microsoft Word yourself (custom scripts). `docx_builder export pdf` and `docx_builder build` (when finalizing a TOC) already handle them for you. Note that a plain `build` of a TOC document now also drives Word by default, so it can trigger the same one-time permission prompt described below; pass `--no-finalize` to keep `build` from launching Word.
 
 - **Per-directory permission prompt.** macOS asks Word for Files & Folders access the first time it writes to a directory it has not been authorised for. A script that writes PDFs into many different project directories triggers the prompt once per directory. `docx_builder export pdf` sidesteps this by always letting Word write inside a single stable scratch directory (`~/Library/Caches/docx_builder/exports/`) — authorised once — then moving the result to its destination with a plain file move, which needs no Word grant.
 - **`save as` is broken in Word 16.70+.** The AppleScript `save as` verb fails on recent Word. The supported path is JavaScript for Automation (JXA) via `osascript -l JavaScript`, which is what the export subcommand uses.
