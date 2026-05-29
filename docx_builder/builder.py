@@ -116,6 +116,18 @@ def _load_content_data(project_path: Path) -> dict[str, Any]:
     return data
 
 
+def _contains_toc(items: list[dict[str, Any]]) -> bool:
+    return any(item.get("call") == "toc" for item in items)
+
+
+def has_toc(project_dir: str | Path) -> bool:
+    project_path = Path(project_dir).resolve()
+    data = _load_content_data(project_path)
+    front_matter: list[dict[str, Any]] = list(data.get("front_matter") or [])
+    body_sections: list[dict[str, Any]] = list(data.get("sections") or [])
+    return _contains_toc(front_matter) or _contains_toc(body_sections)
+
+
 def resolve_output_path(project_dir: str | Path, output_override: str | None = None) -> Path:
     project_path = Path(project_dir).resolve()
     data = _load_content_data(project_path)
