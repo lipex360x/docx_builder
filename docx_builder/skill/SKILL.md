@@ -1,6 +1,6 @@
 ---
 name: docx_builder
-description: Generate DOCX reports from a content.yaml file. Use this skill when the user asks to create, build, or edit a DOCX document via docx_builder, discusses content.yaml structure, asks about styles cascade, references heading/body/bullet/figure sections, or wants to install the skill itself. Triggers on "docx_builder", "content.yaml", "build report", "scaffold report", "edit styles".
+description: Generate DOCX reports (and export them to PDF) from a content.yaml file. Use this skill when the user asks to create, build, or edit a DOCX document via docx_builder, export/convert a built .docx to PDF, open the result in Word, discusses content.yaml structure, asks about styles cascade or page numbering, references heading/body/bullet/figure/toc sections, or wants to install the skill itself. Triggers on "docx_builder", "content.yaml", "build report", "scaffold report", "edit styles", "export pdf", "build --pdf", "convert to pdf", "--open".
 ---
 
 # docx_builder skill
