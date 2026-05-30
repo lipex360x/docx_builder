@@ -52,7 +52,7 @@ def test_fix_is_noop_when_destinations_already_correct(tmp_path: Path) -> None:
 
     rewritten = toc_links.fix_toc_links(pdf_path)
 
-    assert rewritten == 3
+    assert rewritten == 0
     assert _destination_pages(pdf_path) == [1, 2, 3]
 
 

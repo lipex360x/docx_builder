@@ -52,10 +52,10 @@ def _resolve_destination(
     return None
 
 
-def _rewritten_destinations(document: Any, toc_page: Any, fitz_module: Any) -> list[tuple[fitz.Rect, int]]:
+def _rewritten_destinations(document: Any, toc_page: Any, fitz_module: Any) -> list[tuple[fitz.Rect, int, bool]]:
     goto_links = [link for link in toc_page.get_links() if link.get("kind") == fitz_module.LINK_GOTO]
     first_body_index = toc_page.number + 1
-    rewrites: list[tuple[fitz.Rect, int]] = []
+    rewrites: list[tuple[fitz.Rect, int, bool]] = []
     minimum_index = first_body_index
     for link in goto_links:
         rectangle = link["from"]
@@ -63,7 +63,8 @@ def _rewritten_destinations(document: Any, toc_page: Any, fitz_module: Any) -> l
         destination_index = _resolve_destination(document, name, first_body_index, minimum_index)
         if destination_index is None:
             destination_index = link.get("page", first_body_index)
-        rewrites.append((rectangle, destination_index))
+        corrected = destination_index != link.get("page")
+        rewrites.append((rectangle, destination_index, corrected))
         minimum_index = destination_index
     return rewrites
 
@@ -71,11 +72,11 @@ def _rewritten_destinations(document: Any, toc_page: Any, fitz_module: Any) -> l
 def _apply_rewrites(
     document: Any,
     toc_page: Any,
-    rewrites: list[tuple[fitz.Rect, int]],
+    rewrites: list[tuple[fitz.Rect, int, bool]],
     fitz_module: Any,
 ) -> None:
     document.xref_set_key(toc_page.xref, "Annots", "[]")
-    for rectangle, destination_index in rewrites:
+    for rectangle, destination_index, _corrected in rewrites:
         toc_page.insert_link(
             {
                 "kind": fitz_module.LINK_GOTO,
@@ -104,4 +105,4 @@ def fix_toc_links(pdf_path: Path) -> int:
         _apply_rewrites(document, toc_page, rewrites, fitz_module)
         document.save(str(pdf_path))
         document.close()
-        return len(rewrites)
+        return sum(1 for _rectangle, _destination_index, corrected in rewrites if corrected)
