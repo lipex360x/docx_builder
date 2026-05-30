@@ -12,6 +12,9 @@ dependencies = [
 docx_builder = "docx_builder.cli:main"
 
 [project.optional-dependencies]
+pdf-links = [
+    "pymupdf",
+]
 dev = [
     "pytest",
     "mypy",
@@ -57,5 +60,6 @@ ignore_missing_imports = true
 [dependency-groups]
 dev = [
     "pytest>=9.0.3",
+    "pymupdf>=1.24",
     "types-pyyaml>=6.0.12.20260408",
 ]
