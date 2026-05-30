@@ -53,6 +53,12 @@ uv tool install --editable .       # live install, source edits propagate withou
 
 This registers the `docx_builder` binary in `~/.local/bin/`. Because the package is content-agnostic, provide your own cover `.docx` through `cover.template` or `--template-dir` when you want a cover sheet.
 
+The core install has no PDF post-processing dependency. The opt-in `--fix-toc-links` flag needs the `pdf-links` extra, which adds [PyMuPDF](https://pymupdf.readthedocs.io/):
+
+```bash
+uv tool install 'git+https://github.com/lipex360x/docx_builder.git[pdf-links]'
+```
+
 To upgrade a **snapshot** install after pulling changes:
 
 ```bash
@@ -162,7 +168,7 @@ docx_builder build --pdf --open     # and open both the PDF and the finalised .d
 By default the export also writes the populated TOC back over the source `.docx`, so the source ends finalised. Pass `--no-update-source` to leave it byte-identical, useful when `export pdf --input SomeFile.docx` points at a file you do not want overwritten. `--open` is macOS-only; elsewhere it prints a note and skips.
 
 > [!NOTE]
-> **Known Word limitation: ToC hyperlinks in the PDF.** In the exported PDF, the clickable table-of-contents entries can jump to the heading one entry ahead of the target (clicking an entry lands on the next heading). This is a bug in Word for Mac's Save-as-PDF engine: the generated `.docx` bookmarks are correct, and page numbers and content are unaffected. Use the `.docx` to navigate in the meantime, or follow [issue #18](https://github.com/lipex360x/docx_builder/issues/18) for the post-processing fix under design.
+> **Known Word limitation: ToC hyperlinks in the PDF.** In the exported PDF, the clickable table-of-contents entries can occasionally jump to the heading one entry ahead of the target (clicking an entry lands on the next heading). This is a bug in Word for Mac's Save-as-PDF engine: the generated `.docx` bookmarks are correct, and page numbers and content are unaffected. The bug is rare, so the fix is opt-in: pass `--fix-toc-links` to `export pdf` or `build --pdf` to post-process the PDF and rewrite each ToC link to its heading's real page (it prints `Fixed N ToC link(s)`). This requires the optional `pdf-links` extra (`uv tool install 'docx_builder[pdf-links]'`); the default export path is unchanged and gains no new dependency.
 
 <div align="right"><a href="#docx_builder">↑ Back to top</a></div>
 
@@ -284,12 +290,13 @@ Full schema, accepted units, color formats, defaults, and every section type's k
 │   ├── cli/                  # argparse entry package, one module per subcommand
 │   │   ├── __init__.py       # DESCRIPTION + EPILOG + _build_parser() + main()
 │   │   ├── _shared.py        # next-step error printers + resolve_directory()
-│   │   ├── _build.py         # build command (+ --pdf / --open / --no-finalize)
+│   │   ├── _build.py         # build command (+ --pdf / --open / --no-finalize / --fix-toc-links)
 │   │   ├── _init.py          # init command
-│   │   ├── _export.py        # export pdf command
+│   │   ├── _export.py        # export pdf command (+ --fix-toc-links)
 │   │   └── _install.py       # install skill command
 │   ├── builder.py            # build(), init_project(), has_toc()
 │   ├── export.py             # export_pdf() and finalize_source() via Word + JXA (macOS)
+│   ├── toc_links.py          # opt-in PDF ToC-hyperlink repair via PyMuPDF (pdf-links extra)
 │   ├── report.py             # post-build report: words, reading time, em-dash counter
 │   ├── elements.py           # paragraph primitives (h1, h2, h3, body, bullet, …)
 │   ├── figure.py             # figure() and figure_pair() with centred captions
@@ -318,8 +325,8 @@ Full schema, accepted units, color formats, defaults, and every section type's k
 
 ```text
 docx_builder init [DIR] [--force]
-docx_builder build [DIR] [--output FILE] [--template-dir DIR] [--no-finalize] [--pdf] [--no-update-source] [--open]
-docx_builder export pdf [DIR] [--input FILE] [--output FILE] [--no-update-source] [--open]
+docx_builder build [DIR] [--output FILE] [--template-dir DIR] [--no-finalize] [--pdf] [--no-update-source] [--open] [--fix-toc-links]
+docx_builder export pdf [DIR] [--input FILE] [--output FILE] [--no-update-source] [--open] [--fix-toc-links]
 docx_builder install skill [--scope local|global]
 ```
 
@@ -331,6 +338,7 @@ docx_builder install skill [--scope local|global]
 - `export pdf` converts a built `.docx` to PDF via Microsoft Word (macOS only). Input defaults to `build`'s filename resolution; `--input` overrides it. The PDF reports its real page count.
 - `--no-update-source` (on `export pdf`, honoured by `build --pdf`) leaves the source `.docx` byte-identical instead of writing back the populated TOC.
 - `--open` opens the result after the command finishes: with `--pdf` both the `.pdf` and the finalised `.docx` (in Word), otherwise the `.docx`. macOS-only; elsewhere it prints a note and skips.
+- `--fix-toc-links` (on `export pdf`, honoured by `build --pdf`) post-processes the PDF to repair ToC hyperlinks that Word's PDF engine shifted. Off by default; needs the optional `pdf-links` extra (`uv tool install 'docx_builder[pdf-links]'`).
 
 <div align="right"><a href="#docx_builder">↑ Back to top</a></div>
 
