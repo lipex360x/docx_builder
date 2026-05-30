@@ -7,14 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- **Opt-in `--fix-toc-links` flag on `export pdf` (and `build --pdf`).** Microsoft Word for Mac's `saveAs … format PDF` engine occasionally writes some `_Toc…` bookmark destinations shifted one entry ahead, so clicking a table-of-contents entry in the resulting PDF lands on the next heading. The source `.docx` is correct; only Word's PDF is wrong. The new flag post-processes the exported PDF in place: it repairs the broken xref, locates the ToC page, and rewrites each ToC hyperlink to its heading's real page (matching entry text to the heading and enforcing a monotonic non-decreasing destination to survive duplicate headings). It prints `Fixed N ToC link(s)`. The bug is rare and not reproducible synthetically, so the fix is off by default. It relies on [PyMuPDF](https://pymupdf.readthedocs.io/), shipped as the optional `pdf-links` extra (`uv tool install 'docx_builder[pdf-links]'`); the default export path gains no new runtime dependency. New module `docx_builder/toc_links.py` (`fix_toc_links`).
-
 ### Planned
 
 - Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls (quote, callout, table, code_block, …) without touching the core renderer.
 - PDF-to-YAML transcription workflow — guided protocol for analysing a source PDF (text + visual styles) and emitting a matching `content.yaml`.
+
+## [0.6.0] — 2026-05-30
+
+### Added
+
+- **Opt-in `--fix-toc-links` flag on `export pdf` (and `build --pdf`).** Microsoft Word for Mac's `saveAs … format PDF` engine occasionally writes some `_Toc…` bookmark destinations shifted one entry ahead, so clicking a table-of-contents entry in the resulting PDF lands on the next heading. The source `.docx` is correct; only Word's PDF is wrong. The new flag post-processes the exported PDF in place: it repairs the broken xref, locates the ToC page, and rewrites each ToC hyperlink to its heading's real page (matching entry text to the heading and enforcing a monotonic non-decreasing destination to survive duplicate headings). It prints `Fixed N ToC link(s)`, counting only entries whose destination actually changed. The bug is rare and not reproducible synthetically, so the fix is off by default. It relies on [PyMuPDF](https://pymupdf.readthedocs.io/), shipped as the optional `pdf-links` extra (`uv tool install 'docx_builder[pdf-links]'`); the default export path gains no new runtime dependency. New module `docx_builder/toc_links.py` (`fix_toc_links`).
 
 ## [0.5.0] — 2026-05-30
 
@@ -110,7 +112,8 @@ Initial release.
 - Tests: 95 pytest covering build, CLI, styles, elements, figure, pagination, renderer, summary, table, skill installer.
 - Quality: ruff strict + mypy strict — both clean.
 
-[Unreleased]: https://github.com/lipex360x/docx_builder/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/lipex360x/docx_builder/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/lipex360x/docx_builder/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/lipex360x/docx_builder/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/lipex360x/docx_builder/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/lipex360x/docx_builder/compare/v0.2.0...v0.3.0

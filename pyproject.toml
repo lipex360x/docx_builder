@@ -1,6 +1,6 @@
 [project]
 name = "docx_builder"
-version = "0.5.0"
+version = "0.6.0"
 description = "Generate DOCX reports from a content.yaml in any working directory."
 requires-python = ">=3.11"
 dependencies = [
