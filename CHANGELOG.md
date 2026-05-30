@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `docx_builder build` now prints a short post-build report: word count, estimated reading time (at 200 wpm), a page-count line, and an em-dash (`U+2014`) counter. When any em-dash is present the line is flagged `<- remove before shipping` so they are easy to spot and strip. Page count is reported as `n/a` because a plain `build` cannot know it ahead of time — only the Word/PDF export path produces the real count. The report is non-destructive: em-dashes are counted and flagged, never auto-removed. New module `docx_builder/report.py` (`analyse`, `report_for`, `format_report`).
 
+### Fixed
+
+- **Page counter no longer overcounts on cover+body reports.** The footer denominator now uses Word's `SECTIONPAGES` field instead of `NUMPAGES`, so it counts only the numbered body section rather than every physical page (cover and front matter included). A 24-page body that previously closed on `24 / 25` now correctly reads `24 / 24`. In single-section documents the two fields are equivalent, so there is no change there.
+- **The body now starts on a fresh page and restarts numbering deterministically.** The section break between `front_matter` and `sections` changed from continuous to next-page, so the page-number restart lands on a real page boundary instead of mid-page. The body section is also given an explicit `pgNumType` restart (`start=1`), so it begins at `PAGE 1` regardless of whether the cover `.docx` carries its own page-number restart. This keeps the TOC on its own page and makes the body number cleanly from 1. A `page_break` placed as the first item of `sections` (a common way to push the body past the front matter) is absorbed by the section break instead of stacking with it, so the body no longer starts with a blank page.
+- **A `call: toc` is now always treated as front matter** (footer cleared, kept out of the `PAGE` sequence) regardless of whether it sits under `front_matter:` or `sections:`. Previously a TOC placed in `sections:` was numbered as `PAGE 1`, pushing the body to start at `PAGE 2` and shifting every page number the TOC displayed.
+
 ### Planned
 
 - Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls (quote, callout, table, code_block, …) without touching the core renderer.

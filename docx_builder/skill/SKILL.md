@@ -148,15 +148,17 @@ If you don't need a cover and you want page numbers on every section, just use `
 | `figure` | `filename`, `label`, `caption` | `width`, `style`, `caption_style` |
 | `figure_pair` | `filename1`, `filename2`, `label`, `caption` | `width1`, `width2`, `style`, `caption_style` |
 
-Any section may appear in either `front_matter` or `sections`. The distinction is only about page numbering.
+Any section may appear in either `front_matter` or `sections`. The distinction is only about page numbering. **Exception:** a `toc` is always treated as front matter (footer cleared, kept out of the `PAGE` sequence) wherever you place it, so the body always starts at `PAGE 1` even if you list the `toc` under `sections:`.
 
 ## Page numbering — three modes
 
 | Goal | YAML |
 |---|---|
 | No page numbers anywhere | `page_numbers: false` (top-level) |
-| Cover/TOC unnumbered, content numbered | Put cover/TOC items in `front_matter:`; content in `sections:` |
+| Cover/TOC unnumbered, content numbered | Put cover/TOC items in `front_matter:`; content in `sections:` (a `toc` is unnumbered automatically wherever you put it) |
 | Every page numbered | Use `sections:` only (no `front_matter`, no `page_numbers: false`) |
+
+The footer reads `{page} / {total}` where `{total}` is the count of pages in the **numbered body section** (Word's `SECTIONPAGES` field), not the whole document. So a report with an unnumbered cover and TOC closes on `N / N`, not `N / N+front-matter`. The body always begins on a new page at `PAGE 1`. If the first item of `sections` is a `page_break` (a common idiom to push the body past the front matter), it is absorbed by the section break — the body does not start with a blank page.
 
 ### Legacy: `hide_page_counter`
 

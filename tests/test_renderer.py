@@ -3,6 +3,7 @@ import tempfile
 
 import pytest
 from docx import Document
+from docx.enum.section import WD_SECTION
 
 from docx_builder.renderer import fill_cover, render_sections
 from docx_builder.styles import StyleResolver
@@ -354,3 +355,49 @@ def test_render_sections_section_break_inserted_once() -> None:
         resolver=_RESOLVER,
     )
     assert len(document.sections) == 2
+
+
+def test_render_sections_body_section_starts_on_new_page() -> None:
+    document = Document()
+    render_sections(
+        document,
+        [
+            {"call": "h1", "text": "Hidden", "hide_page_counter": True},
+            {"call": "h1", "text": "Body"},
+        ],
+        images_dir="/nonexistent",
+        resolver=_RESOLVER,
+    )
+    assert document.sections[-1].start_type == WD_SECTION.NEW_PAGE
+
+
+def test_render_sections_skips_redundant_leading_page_break() -> None:
+    document = Document()
+    render_sections(
+        document,
+        [
+            {"call": "h1", "text": "Front", "hide_page_counter": True},
+            {"call": "page_break"},
+            {"call": "h1", "text": "Body"},
+        ],
+        images_dir="/nonexistent",
+        resolver=_RESOLVER,
+    )
+    assert document.element.body.xml.count('<w:br w:type="page"/>') == 0
+    assert len(document.sections) == 2
+
+
+def test_render_sections_keeps_non_leading_page_break() -> None:
+    document = Document()
+    render_sections(
+        document,
+        [
+            {"call": "h1", "text": "Front", "hide_page_counter": True},
+            {"call": "h1", "text": "Body"},
+            {"call": "page_break"},
+            {"call": "h1", "text": "More"},
+        ],
+        images_dir="/nonexistent",
+        resolver=_RESOLVER,
+    )
+    assert document.element.body.xml.count('<w:br w:type="page"/>') == 1
