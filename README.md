@@ -24,7 +24,7 @@ Define headings, body text, bullet points, figures, references, and a table of c
 
 1. Create a directory for your document with a `content.yaml` file (and an `images/` folder if you use figures).
 2. Run `docx_builder build` from that directory. It reads the YAML, optionally loads a `.docx` cover template (only when `cover.template` is set; nothing is bundled), fills the cover table by row index, and renders every section in order.
-3. On macOS with Microsoft Word, `build` finalises the table of contents for you when the document declares one. Elsewhere, open the output `.docx` in Word and refresh fields, or use the PDF export.
+3. On macOS with Microsoft Word, `build` finalises the table of contents for you when the document declares one. On Windows or Linux the `.docx` is still generated normally, but the TOC stays as a placeholder — open it in Word and refresh fields (`Ctrl+A`, then `F9`) to populate it. Automatic TOC finalisation and PDF export are macOS-only.
 
 ```
 content.yaml + images/ ──► docx_builder build ──► <output>.docx
@@ -150,7 +150,7 @@ docx_builder build --no-finalize    # skip the Word pass, keep build pure and fa
 ```
 
 > [!NOTE]
-> Off macOS or without Word installed, `build` cannot fill the TOC (it is a Word field that only Word can repaginate). It leaves a placeholder, prints a short note, and exits cleanly. Open the `.docx` in Word and press `Cmd+A` then `F9`, or run the PDF export.
+> Off macOS or without Word installed, `build` cannot fill the TOC (it is a Word field that only Word can repaginate). It leaves a placeholder, prints a short note, and exits cleanly. On Windows, open the `.docx` in Word and press `Ctrl+A` then `F9` to populate it (`Cmd+A` on macOS). PDF export is macOS-only.
 
 For PDF, the export drives Word for you on macOS:
 
