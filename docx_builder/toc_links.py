@@ -5,8 +5,6 @@ import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from docx_builder.export import ExportError
-
 if TYPE_CHECKING:
     import fitz
 
@@ -20,6 +18,8 @@ _TRAILING_LEADER = re.compile(r"[\s.]*\d*\s*$")
 
 
 def _load_fitz() -> Any:
+    from docx_builder.export import ExportError
+
     try:
         import fitz
     except ImportError as exception:

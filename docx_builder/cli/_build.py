@@ -19,6 +19,7 @@ Examples:
   docx_builder build --open
   docx_builder build --pdf --open
   docx_builder build --pdf --no-update-source
+  docx_builder build --pdf --fix-toc-links
 
 Builds the .docx described by content.yaml in the current directory (or the
 given directory). If the document contains a TOC, build finalizes it by
@@ -49,6 +50,7 @@ def handle(arguments: argparse.Namespace) -> int:
             None,
             update_source=not arguments.no_update_source,
             open_result=arguments.open,
+            fix_toc_links=arguments.fix_toc_links,
         )
     if not arguments.no_finalize and has_toc(target):
         try:
@@ -94,5 +96,10 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         "--open",
         action="store_true",
         help="open the result: with --pdf, both the .pdf and the .docx in Word; otherwise the .docx (macOS only)",
+    )
+    parser.add_argument(
+        "--fix-toc-links",
+        action="store_true",
+        help="with --pdf, rewrite ToC hyperlink destinations in the PDF (needs the pdf-links extra; opt-in)",
     )
     parser.set_defaults(func=handle)

@@ -177,7 +177,7 @@ def test_export_runs_toc_link_fix_when_requested(
         assert pdf_path.exists()
         return 2
 
-    monkeypatch.setattr(export, "fix_toc_links", fake_fix)
+    monkeypatch.setattr(export.toc_links, "fix_toc_links", fake_fix)
 
     export.export_pdf(source, destination, fix_toc_links=True)
 
@@ -202,7 +202,7 @@ def test_export_skips_toc_link_fix_by_default(monkeypatch: pytest.MonkeyPatch, t
     def fail_fix(pdf_path: Path) -> int:
         raise AssertionError("fix_toc_links should not run without the flag")
 
-    monkeypatch.setattr(export, "fix_toc_links", fail_fix)
+    monkeypatch.setattr(export.toc_links, "fix_toc_links", fail_fix)
 
     export.export_pdf(source, destination)
 
