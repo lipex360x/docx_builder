@@ -75,6 +75,7 @@ docx_builder/
     _install.py       # install skill command (interactive scope prompt)
   builder.py          # build() + init_project() + has_toc()
   export.py           # export_pdf() + finalize_source() via Word + JXA (macOS)
+  toc_links.py        # opt-in PDF ToC-hyperlink repair via PyMuPDF (pdf-links extra)
   report.py           # post-build report: words, reading time, em-dash counter
   elements.py         # h1, h2, h3, body, bullet, bold_lead, reference, page_break
   figure.py           # figure(), figure_pair()
@@ -149,7 +150,7 @@ Manual fallback (off macOS or without Word): open the `.docx` in Word, `Cmd+A` t
 
 `libreoffice --headless --convert-to pdf` is intentionally avoided: it changes fonts, spacing and field rendering. Word's renderer matches what a marker sees.
 
-**Known Word bug: ToC hyperlinks in the exported PDF.** Word for Mac's `saveAs format PDF` writes the `_Toc` bookmark destinations shifted by one entry, so clicking a ToC entry in the PDF lands on the next heading. The `.docx` is correct (each entry's anchor maps 1:1 to the right heading's bookmark); only Word's PDF is wrong, and repagination/convergence does not fix it. Tracked in [issue #18](https://github.com/lipex360x/docx_builder/issues/18).
+**Known Word bug: ToC hyperlinks in the exported PDF.** Word for Mac's `saveAs format PDF` occasionally writes some `_Toc` bookmark destinations shifted by one entry, so clicking a ToC entry in the PDF lands on the next heading. The `.docx` is correct (each entry's anchor maps 1:1 to the right heading's bookmark); only Word's PDF is wrong, and repagination/convergence does not fix it. The bug is rare and not reproducible synthetically, so the fix is opt-in: `export pdf --fix-toc-links` (honoured by `build --pdf`) post-processes the PDF via `docx_builder/toc_links.py` to rewrite each ToC link to its heading's real page. It needs the optional `pdf-links` extra (PyMuPDF); the default export path is unchanged. Shipped for [issue #18](https://github.com/lipex360x/docx_builder/issues/18).
 
 **Inspecting exported PDFs (debugging).** `python-docx` is not a renderer and cannot read PDF link destinations or page layout. Use PyMuPDF read-only, no project install needed: `uv run --with pymupdf python ...`. `page.get_links()` resolves internal GOTO destinations, `page.search_for(text)` finds the real page of a heading, and the page count comes from the PDF itself. This is how the issue #18 off-by-one was measured (each link's destination page vs. the real heading page). `pypdf` could not resolve the destinations (the Word PDF has a broken xref); rebuild the xref with `doc.save(..., garbage=4, clean=True)` first if you need to edit links.
 

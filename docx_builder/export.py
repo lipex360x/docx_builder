@@ -9,6 +9,7 @@ from pathlib import Path
 
 from docx import Document
 
+from docx_builder import toc_links
 from docx_builder.builder import resolve_output_path as resolve_build_output
 
 TOC_NOTE_NEEDLE = "Note: open in Microsoft Word"
@@ -83,7 +84,12 @@ def _read_page_count(pdf_path: Path) -> int | None:
     return _parse_page_count(result.stdout)
 
 
-def export_pdf(input_docx: Path, output_pdf: Path, update_source: bool = True) -> Path:
+def export_pdf(
+    input_docx: Path,
+    output_pdf: Path,
+    update_source: bool = True,
+    fix_toc_links: bool = False,
+) -> Path:
     _require_word_environment()
     if not input_docx.exists():
         raise ExportError(f"input .docx not found: {input_docx}")
@@ -95,6 +101,10 @@ def export_pdf(input_docx: Path, output_pdf: Path, update_source: bool = True) -
     shutil.copyfile(input_docx, scratch_docx)
     strip_toc_note(scratch_docx)
     _run_jxa(scratch_docx, scratch_pdf)
+
+    if fix_toc_links:
+        rewritten = toc_links.fix_toc_links(scratch_pdf)
+        print(f"Fixed {rewritten} ToC link(s)")
 
     output_pdf.parent.mkdir(parents=True, exist_ok=True)
     shutil.move(str(scratch_pdf), str(output_pdf))

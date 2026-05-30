@@ -155,6 +155,60 @@ def test_export_finalizes_source_by_default(
     assert f"Exported: {destination} (3 pages)" in output
 
 
+def test_export_runs_toc_link_fix_when_requested(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(export.sys, "platform", "darwin")
+    monkeypatch.setattr(export, "_word_is_installed", lambda: True)
+
+    scratch_dir = tmp_path / "scratch"
+    monkeypatch.setattr(export, "SCRATCH_DIRECTORY", scratch_dir)
+
+    source = _make_docx_with_note(tmp_path / "Report.docx")
+    destination = tmp_path / "out" / "Report.pdf"
+
+    recorded: dict[str, Any] = {}
+    monkeypatch.setattr(subprocess, "run", _fake_word_run_factory(scratch_dir, recorded))
+
+    fix_calls: list[Path] = []
+
+    def fake_fix(pdf_path: Path) -> int:
+        fix_calls.append(pdf_path)
+        assert pdf_path.exists()
+        return 2
+
+    monkeypatch.setattr(export.toc_links, "fix_toc_links", fake_fix)
+
+    export.export_pdf(source, destination, fix_toc_links=True)
+
+    assert len(fix_calls) == 1
+    assert fix_calls[0].parent == scratch_dir
+    assert "Fixed 2 ToC link(s)" in capsys.readouterr().out
+
+
+def test_export_skips_toc_link_fix_by_default(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(export.sys, "platform", "darwin")
+    monkeypatch.setattr(export, "_word_is_installed", lambda: True)
+
+    scratch_dir = tmp_path / "scratch"
+    monkeypatch.setattr(export, "SCRATCH_DIRECTORY", scratch_dir)
+
+    source = _make_docx_with_note(tmp_path / "Report.docx")
+    destination = tmp_path / "out" / "Report.pdf"
+
+    recorded: dict[str, Any] = {}
+    monkeypatch.setattr(subprocess, "run", _fake_word_run_factory(scratch_dir, recorded))
+
+    def fail_fix(pdf_path: Path) -> int:
+        raise AssertionError("fix_toc_links should not run without the flag")
+
+    monkeypatch.setattr(export.toc_links, "fix_toc_links", fail_fix)
+
+    export.export_pdf(source, destination)
+
+    assert destination.exists()
+
+
 def test_export_no_update_source_leaves_source_untouched(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(export.sys, "platform", "darwin")
     monkeypatch.setattr(export, "_word_is_installed", lambda: True)

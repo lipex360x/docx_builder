@@ -15,6 +15,7 @@ Examples:
   docx_builder export pdf --output Final.pdf
   docx_builder export pdf --no-update-source
   docx_builder export pdf --open
+  docx_builder export pdf --fix-toc-links
 
 Converts a built .docx to PDF via Microsoft Word on macOS, refreshing the
 table of contents and page fields first. By default the populated TOC is
@@ -22,6 +23,9 @@ written back over the source .docx so it ends finalized; pass
 --no-update-source to leave the source byte-identical. --open opens both the
 resulting .pdf and the finalized .docx (in Microsoft Word); macOS only. Input
 defaults to the filename build produces; output defaults to <input>.pdf.
+--fix-toc-links post-processes the PDF to correct ToC hyperlink destinations
+that Word's PDF engine occasionally shifts; it needs the optional pdf-links
+extra (uv tool install 'docx_builder[pdf-links]').
 """
 
 
@@ -31,11 +35,12 @@ def run_export(
     output_override: str | None,
     update_source: bool = True,
     open_result: bool = False,
+    fix_toc_links: bool = False,
 ) -> int:
     try:
         input_docx = resolve_input_path(project_dir, input_override)
         output_pdf = resolve_output_path(input_docx, output_override)
-        export_pdf(input_docx, output_pdf, update_source=update_source)
+        export_pdf(input_docx, output_pdf, update_source=update_source, fix_toc_links=fix_toc_links)
     except FileNotFoundError as exception:
         _shared.print_missing_path(str(exception))
         return 1
@@ -56,6 +61,7 @@ def handle(arguments: argparse.Namespace) -> int:
         arguments.output,
         update_source=not arguments.no_update_source,
         open_result=arguments.open,
+        fix_toc_links=arguments.fix_toc_links,
     )
 
 
@@ -88,5 +94,10 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         "--open",
         action="store_true",
         help="open both the resulting .pdf and the finalized .docx in Word after export (macOS only)",
+    )
+    pdf_parser.add_argument(
+        "--fix-toc-links",
+        action="store_true",
+        help="rewrite ToC hyperlink destinations in the PDF (needs the pdf-links extra; opt-in)",
     )
     pdf_parser.set_defaults(func=handle)

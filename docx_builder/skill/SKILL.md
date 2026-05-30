@@ -36,6 +36,7 @@ docx_builder build --pdf --open  # build, export, then open BOTH the .pdf and th
 docx_builder export pdf       # convert the built .docx to PDF (macOS + Word)
 docx_builder export pdf --no-update-source  # do not write the populated TOC back over the source
 docx_builder export pdf --open  # convert then open both the .pdf and the finalized .docx in Word (macOS)
+docx_builder export pdf --fix-toc-links  # opt-in: repair ToC hyperlinks Word's PDF engine shifted
 ```
 
 `init` does NOT scaffold a placeholder document. It only writes a tiny marker file pointing back at this skill. You (the assistant) are expected to author the real `content.yaml` based on what the user actually wants to build — CV, report, manual, paper, contract, fiction — each gets a tailored YAML.
@@ -47,8 +48,8 @@ After every `build`, the CLI prints a short report: word count, estimated readin
 ## PDF export (macOS + Microsoft Word)
 
 ```bash
-docx_builder export pdf [DIR] [--input FILE] [--output FILE] [--no-update-source] [--open]
-docx_builder build [DIR] [--no-finalize] [--pdf] [--no-update-source] [--open]
+docx_builder export pdf [DIR] [--input FILE] [--output FILE] [--no-update-source] [--open] [--fix-toc-links]
+docx_builder build [DIR] [--no-finalize] [--pdf] [--no-update-source] [--open] [--fix-toc-links]
 ```
 
 - Input defaults to the same filename `build` would produce (`cover.output` template → default pattern); override with `--input`.
@@ -60,6 +61,7 @@ docx_builder build [DIR] [--no-finalize] [--pdf] [--no-update-source] [--open]
 - A defensive strip removes the legacy `"Note: open in Microsoft Word…"` paragraph from the scratch copy before conversion, so old `--input` documents that still carry it do not leak it into the PDF or the finalised source. Freshly built documents no longer emit that note at all.
 - The PDF is first written to a stable scratch directory (`~/Library/Caches/docx_builder/exports/`) then moved to the requested path, so Word's Files & Folders permission prompt only fires once, ever. The write-back to the source is a plain Python move and needs no Word grant.
 - After export it prints the real page count: `Exported: <path> (<N> pages)`.
+- `--fix-toc-links` (opt-in, off by default) post-processes the exported PDF to correct table-of-contents hyperlinks. Word for Mac's PDF engine occasionally writes some ToC bookmark destinations shifted one entry ahead, so clicking a ToC entry in the PDF lands on the next heading (the `.docx` itself is correct). The flag repairs the PDF's xref, finds the ToC page, and rewrites each ToC link to its heading's real page, printing `Fixed N ToC link(s)`. It needs the optional `pdf-links` extra (`uv tool install 'docx_builder[pdf-links]'`); without it the command raises a clear install hint. Only suggest this flag when a user reports ToC links jumping to the wrong heading in the PDF — it is rare.
 
 **Never trust `docProps/app.xml`'s `<Pages>` for the page count.** `python-docx` writes whatever was cached at the last serialisation — it is not recalculated and is routinely wrong (e.g. reports 1 page when Word renders 2). The PDF export path is the only reliable way to learn the true page count.
 
