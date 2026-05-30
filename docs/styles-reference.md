@@ -102,7 +102,7 @@ Inherits everything above and adds:
 
 | Key | Type | Default | Notes |
 |---|---|---|---|
-| `format` | string | `"{page} / {total}"` | Placeholders `{page}` and `{total}` are required if you customise. |
+| `format` | string | `"{page} / {total}"` | Placeholders `{page}` and `{total}` are required if you customise. `{total}` counts the pages of the numbered body section (Word's `SECTIONPAGES`), not the whole document, so an unnumbered cover/TOC is excluded and the footer closes on `N / N`. |
 | `align` | enum | `right` | |
 | `font_size` | length (pt) | `9pt` | |
 
@@ -199,6 +199,8 @@ sections: [...]
 
 The legacy `hide_page_counter: true` flag on individual section items still works but is **deprecated** — `build` now prints a one-time `warning:` to stderr when it is present, and the flag is scheduled for removal in v0.5. New documents should use `front_matter:` instead — it is declarative, free of repetition, and surfaces intent at the top of the file.
 
+The numbered body section starts on a new page (the break between `front_matter` and `sections` is a next-page section break), so the page-number restart lands on a real page boundary and the body begins at `PAGE 1`. A `page_break` placed as the first item of `sections` is absorbed by that section break, so the body never starts with a blank page. A `toc` is always pulled into the unnumbered front matter regardless of whether you list it under `front_matter:` or `sections:`; this keeps the table of contents out of the `PAGE` sequence so the body still starts at `PAGE 1`.
+
 ## Section type reference
 
 | `call` | Required fields | Optional fields | Style key consumed |
@@ -213,7 +215,7 @@ The legacy `hide_page_counter: true` flag on individual section items still work
 | `figure` | `filename`, `label`, `caption` | `width`, `style`, `caption_style` | `figure`, `figure_caption` |
 | `figure_pair` | `filename1`, `filename2`, `label`, `caption` | `width1`, `width2`, `style`, `caption_style` | `figure_pair`, `figure_caption` |
 
-Any section type may appear in either `front_matter` or `sections`.
+Any section type may appear in either `front_matter` or `sections`. A `toc` is always treated as front matter (unnumbered) wherever you place it.
 
 ### Inline overrides
 

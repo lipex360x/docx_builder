@@ -190,6 +190,25 @@ def test_build_front_matter_suppresses_footer(tmp_path: Path) -> None:
     assert "PAGE" in body_footer_xml
 
 
+def test_build_toc_in_sections_is_unnumbered(tmp_path: Path) -> None:
+    content = {
+        "sections": [
+            {"call": "toc", "levels": "1-2"},
+            {"call": "h1", "text": "Introduction"},
+        ],
+    }
+    _write_yaml(tmp_path / "content.yaml", content)
+
+    build(str(tmp_path))
+
+    output_document = Document(str(tmp_path / "Report.docx"))
+    assert len(output_document.sections) >= 2
+    toc_footer_xml = output_document.sections[0].footer._element.xml
+    body_footer_xml = output_document.sections[1].footer._element.xml
+    assert "PAGE" not in toc_footer_xml
+    assert "PAGE" in body_footer_xml
+
+
 def test_build_page_numbers_disabled_clears_all_footers(tmp_path: Path) -> None:
     content = {
         "page_numbers": False,

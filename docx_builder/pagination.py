@@ -85,7 +85,7 @@ def _add_footer_to_section(section: Section, style: dict[str, Any]) -> None:
     paragraph_element = paragraph._p
     paragraph_element.append(_make_field_run("PAGE", size_half))
     paragraph_element.append(_make_separator_run(middle, size_half))
-    paragraph_element.append(_make_field_run("NUMPAGES", size_half))
+    paragraph_element.append(_make_field_run("SECTIONPAGES", size_half))
 
     for run in paragraph.runs:
         apply_run_style(run, style)
@@ -96,6 +96,28 @@ def _clear_section_footer(section: Section) -> None:
     footer.is_linked_to_previous = False
     if footer.paragraphs:
         footer.paragraphs[0].clear()
+
+
+def _restart_page_numbering(section: Section) -> None:
+    sect_pr = section._sectPr
+    page_number_type = sect_pr.find(qn("w:pgNumType"))
+    if page_number_type is None:
+        page_number_type = OxmlElement("w:pgNumType")
+        sect_pr.insert_element_before(
+            page_number_type,
+            "w:cols",
+            "w:formProt",
+            "w:vAlign",
+            "w:noEndnote",
+            "w:titlePg",
+            "w:textDirection",
+            "w:bidi",
+            "w:rtlGutter",
+            "w:docGrid",
+            "w:printerSettings",
+            "w:sectPrChange",
+        )
+    page_number_type.set(qn("w:start"), "1")
 
 
 def add_page_numbers(
@@ -111,6 +133,8 @@ def add_page_numbers(
         _clear_section_footer(sections[0])
         for section in sections[1:]:
             _add_footer_to_section(section, style)
+        if len(sections) > 1:
+            _restart_page_numbering(sections[1])
     else:
         for section in sections:
             _add_footer_to_section(section, style)

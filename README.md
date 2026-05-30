@@ -161,6 +161,9 @@ docx_builder build --pdf --open     # and open both the PDF and the finalised .d
 
 By default the export also writes the populated TOC back over the source `.docx`, so the source ends finalised. Pass `--no-update-source` to leave it byte-identical, useful when `export pdf --input SomeFile.docx` points at a file you do not want overwritten. `--open` is macOS-only; elsewhere it prints a note and skips.
 
+> [!NOTE]
+> **Known Word limitation: ToC hyperlinks in the PDF.** In the exported PDF, the clickable table-of-contents entries can jump to the heading one entry ahead of the target (clicking an entry lands on the next heading). This is a bug in Word for Mac's Save-as-PDF engine: the generated `.docx` bookmarks are correct, and page numbers and content are unaffected. Use the `.docx` to navigate in the meantime, or follow [issue #18](https://github.com/lipex360x/docx_builder/issues/18) for the post-processing fix under design.
+
 <div align="right"><a href="#docx_builder">↑ Back to top</a></div>
 
 ---
@@ -203,7 +206,7 @@ Every top-level block is optional. The minimal valid `content.yaml` produces a b
 | `figure` | `filename`, `label`, `caption` | `width`, `style`, `caption_style` | Centred image with caption |
 | `figure_pair` | `filename1`, `filename2`, `label`, `caption` | `width1`, `width2`, `style`, `caption_style` | Two images side by side |
 
-Any section type may appear in either `front_matter` or `sections`. The distinction is only about page numbering.
+Any section type may appear in either `front_matter` or `sections`. The distinction is only about page numbering. A `toc` is the exception: it is always unnumbered (kept out of the `PAGE` sequence) wherever you place it, so the body always starts at `PAGE 1`.
 
 ### Page numbering, three modes
 
@@ -233,6 +236,9 @@ sections:
   - call: h1
     text: Chapter 1
 ```
+
+> [!NOTE]
+> The footer `{total}` placeholder counts the pages of the **numbered body section**, not the whole document, so a report with an unnumbered cover and TOC closes on `N / N` (not `N / N+front-matter`). The body begins on a new page at `PAGE 1`.
 
 > [!NOTE]
 > The legacy flag `hide_page_counter: true` on individual sections is **deprecated**: `build` prints a one-time warning when it sees it, and it is scheduled for removal in v0.5. New documents should use the `front_matter:` block instead.

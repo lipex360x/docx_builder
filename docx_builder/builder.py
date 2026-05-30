@@ -92,18 +92,21 @@ def _warn_if_deprecated_flag(sections: list[dict[str, Any]]) -> None:
         )
 
 
+def _flag_toc_as_front_matter(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [{**item, "hide_page_counter": True} if item.get("call") == "toc" else item for item in items]
+
+
 def _normalise_sections(data: dict[str, Any]) -> tuple[list[dict[str, Any]], bool]:
     front_matter: list[dict[str, Any]] = list(data.get("front_matter") or [])
     body_sections: list[dict[str, Any]] = list(data.get("sections") or [])
     _warn_if_deprecated_flag(body_sections)
 
-    if front_matter:
-        flagged_front = [{**item, "hide_page_counter": True} for item in front_matter]
-        merged = flagged_front + body_sections
-        return merged, bool(flagged_front)
+    flagged_front = [{**item, "hide_page_counter": True} for item in front_matter]
+    flagged_body = _flag_toc_as_front_matter(body_sections)
+    merged = flagged_front + flagged_body
 
-    has_hidden = any(bool(section.get("hide_page_counter")) for section in body_sections)
-    return body_sections, has_hidden
+    has_hidden = any(bool(item.get("hide_page_counter")) for item in merged)
+    return merged, has_hidden
 
 
 def _load_content_data(project_path: Path) -> dict[str, Any]:

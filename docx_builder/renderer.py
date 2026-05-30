@@ -60,12 +60,14 @@ def render_sections(
 
     for item in sections:
         hide = bool(item.get("hide_page_counter", False))
+        call = str(item["call"])
 
         if has_any_hidden and not hide and not section_break_added:
-            document.add_section(WD_SECTION.CONTINUOUS)
+            document.add_section(WD_SECTION.NEW_PAGE)
             section_break_added = True
+            if call == "page_break":
+                continue
 
-        call = str(item["call"])
         inline_style = item.get("style") if isinstance(item.get("style"), dict) else None
 
         if call == "page_break":
