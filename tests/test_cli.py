@@ -133,7 +133,9 @@ def test_cli_build_pdf_flag_invokes_export(
 ) -> None:
     calls: list[tuple[Path, Path]] = []
 
-    def fake_export(input_docx: Path, output_pdf: Path, update_source: bool = True) -> Path:
+    def fake_export(
+        input_docx: Path, output_pdf: Path, update_source: bool = True, fix_toc_links: bool = False
+    ) -> Path:
         calls.append((input_docx, output_pdf))
         return output_pdf
 
@@ -204,7 +206,7 @@ def test_cli_build_pdf_does_not_double_finalize(tmp_path: Path, monkeypatch: pyt
     monkeypatch.setattr("docx_builder.cli._build.finalize_source", lambda source: finalized.append(source) or source)
     monkeypatch.setattr(
         "docx_builder.cli._export.export_pdf",
-        lambda input_docx, output_pdf, update_source=True: output_pdf,
+        lambda input_docx, output_pdf, update_source=True, fix_toc_links=False: output_pdf,
     )
     _write_toc_content(tmp_path)
 
@@ -263,7 +265,7 @@ def test_cli_build_pdf_open_opens_pdf_and_docx(tmp_path: Path, monkeypatch: pyte
     monkeypatch.setattr(_shared, "_run_open", lambda path, app=None: opened.append(path))
     monkeypatch.setattr(
         "docx_builder.cli._export.export_pdf",
-        lambda input_docx, output_pdf, update_source=True: output_pdf,
+        lambda input_docx, output_pdf, update_source=True, fix_toc_links=False: output_pdf,
     )
     init_project(tmp_path)
 
@@ -281,7 +283,7 @@ def test_cli_export_pdf_open_opens_pdf_and_docx(tmp_path: Path, monkeypatch: pyt
     monkeypatch.setattr(_shared, "_run_open", lambda path, app=None: opened.append(path))
     monkeypatch.setattr(
         "docx_builder.cli._export.export_pdf",
-        lambda input_docx, output_pdf, update_source=True: output_pdf,
+        lambda input_docx, output_pdf, update_source=True, fix_toc_links=False: output_pdf,
     )
     init_project(tmp_path)
     main(["build", str(tmp_path)])
@@ -295,7 +297,9 @@ def test_cli_export_pdf_open_opens_pdf_and_docx(tmp_path: Path, monkeypatch: pyt
 def test_cli_export_pdf_no_update_source_threads_through(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     calls: list[bool] = []
 
-    def fake_export(input_docx: Path, output_pdf: Path, update_source: bool = True) -> Path:
+    def fake_export(
+        input_docx: Path, output_pdf: Path, update_source: bool = True, fix_toc_links: bool = False
+    ) -> Path:
         calls.append(update_source)
         return output_pdf
 
@@ -312,7 +316,9 @@ def test_cli_export_pdf_no_update_source_threads_through(tmp_path: Path, monkeyp
 def test_cli_build_pdf_no_update_source_threads_through(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     calls: list[bool] = []
 
-    def fake_export(input_docx: Path, output_pdf: Path, update_source: bool = True) -> Path:
+    def fake_export(
+        input_docx: Path, output_pdf: Path, update_source: bool = True, fix_toc_links: bool = False
+    ) -> Path:
         calls.append(update_source)
         return output_pdf
 
@@ -323,6 +329,76 @@ def test_cli_build_pdf_no_update_source_threads_through(tmp_path: Path, monkeypa
 
     assert exit_code == 0
     assert calls == [False]
+
+
+def test_cli_export_pdf_fix_toc_links_threads_through(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[bool] = []
+
+    def fake_export(
+        input_docx: Path, output_pdf: Path, update_source: bool = True, fix_toc_links: bool = False
+    ) -> Path:
+        calls.append(fix_toc_links)
+        return output_pdf
+
+    monkeypatch.setattr("docx_builder.cli._export.export_pdf", fake_export)
+    init_project(tmp_path)
+    main(["build", str(tmp_path)])
+
+    exit_code = main(["export", "pdf", str(tmp_path), "--fix-toc-links"])
+
+    assert exit_code == 0
+    assert calls == [True]
+
+
+def test_cli_export_pdf_fix_toc_links_defaults_false(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[bool] = []
+
+    def fake_export(
+        input_docx: Path, output_pdf: Path, update_source: bool = True, fix_toc_links: bool = False
+    ) -> Path:
+        calls.append(fix_toc_links)
+        return output_pdf
+
+    monkeypatch.setattr("docx_builder.cli._export.export_pdf", fake_export)
+    init_project(tmp_path)
+    main(["build", str(tmp_path)])
+
+    exit_code = main(["export", "pdf", str(tmp_path)])
+
+    assert exit_code == 0
+    assert calls == [False]
+
+
+def test_cli_build_pdf_fix_toc_links_threads_through(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[bool] = []
+
+    def fake_export(
+        input_docx: Path, output_pdf: Path, update_source: bool = True, fix_toc_links: bool = False
+    ) -> Path:
+        calls.append(fix_toc_links)
+        return output_pdf
+
+    monkeypatch.setattr("docx_builder.cli._export.export_pdf", fake_export)
+    init_project(tmp_path)
+
+    exit_code = main(["build", str(tmp_path), "--pdf", "--fix-toc-links"])
+
+    assert exit_code == 0
+    assert calls == [True]
+
+
+def test_cli_export_pdf_help_documents_fix_toc_links(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit):
+        main(["export", "pdf", "--help"])
+
+    assert "--fix-toc-links" in capsys.readouterr().out
+
+
+def test_cli_build_help_documents_fix_toc_links(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit):
+        main(["build", "--help"])
+
+    assert "--fix-toc-links" in capsys.readouterr().out
 
 
 def test_cli_export_pdf_help_documents_new_flags(capsys: pytest.CaptureFixture[str]) -> None:
