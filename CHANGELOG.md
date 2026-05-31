@@ -7,14 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- **`--fix-toc-links` now handles a table of contents that spans more than one page.** Previously `fix_toc_links` only processed the first ToC page and searched for headings starting from the page right after it — which, for a 2-page ToC, is still inside the ToC. Links on later ToC pages were left uncorrected and some matches could resolve inside the ToC itself. It now treats the contiguous block of ToC pages as a unit: it rewrites links on every ToC page and resolves heading pages only after the last ToC page. (Found while testing a 50-entry ToC: the broken case went from `Fixed 30` / 20 still wrong to `Fixed 50` / 0 wrong.)
-
 ### Planned
 
 - Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls (quote, callout, table, code_block, …) without touching the core renderer.
 - PDF-to-YAML transcription workflow — guided protocol for analysing a source PDF (text + visual styles) and emitting a matching `content.yaml`.
+
+## [0.6.1] — 2026-05-31
+
+### Fixed
+
+- **`--fix-toc-links` now handles a table of contents that spans more than one page.** Previously `fix_toc_links` only processed the first ToC page and searched for headings starting from the page right after it — which, for a 2-page ToC, is still inside the ToC. Links on later ToC pages were left uncorrected and some matches could resolve inside the ToC itself. It now treats the contiguous block of ToC pages as a unit: it rewrites links on every ToC page and resolves heading pages only after the last ToC page. (Found while testing a 50-entry ToC: the broken case went from `Fixed 30` / 20 still wrong to `Fixed 50` / 0 wrong.)
 
 ## [0.6.0] — 2026-05-30
 
@@ -116,7 +118,8 @@ Initial release.
 - Tests: 95 pytest covering build, CLI, styles, elements, figure, pagination, renderer, summary, table, skill installer.
 - Quality: ruff strict + mypy strict — both clean.
 
-[Unreleased]: https://github.com/lipex360x/docx_builder/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/lipex360x/docx_builder/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/lipex360x/docx_builder/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/lipex360x/docx_builder/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/lipex360x/docx_builder/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/lipex360x/docx_builder/compare/v0.3.0...v0.4.0
