@@ -1,9 +1,6 @@
 from __future__ import annotations
 
 import os
-import shutil
-import subprocess
-import sys
 from pathlib import Path
 
 import pytest
@@ -82,17 +79,17 @@ def test_scaffold_brief_layer(tmp_path: Path) -> None:
     assert (tmp_path / "brief" / ".gitkeep").exists()
 
 
-def test_scaffold_monitor_layer_writes_scripts(tmp_path: Path) -> None:
+def test_scaffold_monitor_layer_writes_intake(tmp_path: Path) -> None:
     scaffold.scaffold(tmp_path, layers={"monitor", "tools"}, name="D", cover=False, force=False)
 
-    assert (tmp_path / "tools" / "monitor" / "watch_screenshots.sh").exists()
-    assert (tmp_path / "tools" / "monitor" / "move_screenshot.py").exists()
+    assert (tmp_path / "tools" / "monitor" / "screenshot_intake.py").exists()
+    assert not (tmp_path / "tools" / "monitor" / "watch_screenshots.sh").exists()
 
 
-def test_scaffold_monitor_scripts_executable(tmp_path: Path) -> None:
+def test_scaffold_monitor_script_executable(tmp_path: Path) -> None:
     scaffold.scaffold(tmp_path, layers={"monitor", "tools"}, name="D", cover=False, force=False)
 
-    script = tmp_path / "tools" / "monitor" / "move_screenshot.py"
+    script = tmp_path / "tools" / "monitor" / "screenshot_intake.py"
     assert os.access(script, os.X_OK)
 
 
@@ -146,33 +143,3 @@ def test_format_summary_lists_created(tmp_path: Path) -> None:
 
     summary = scaffold.format_summary(result, tmp_path)
     assert "CLAUDE.md" in summary
-
-
-def test_generated_move_screenshot_moves_png(tmp_path: Path) -> None:
-    scaffold.scaffold(tmp_path, layers={"monitor", "tools"}, name="D", cover=False, force=False)
-    script = tmp_path / "tools" / "monitor" / "move_screenshot.py"
-    source = tmp_path / "shots"
-    source.mkdir()
-    (source / "shot.png").write_bytes(b"\x89PNG\r\n")
-    inbox = tmp_path / "inbox"
-
-    outcome = subprocess.run(
-        [sys.executable, str(script), str(source), str(inbox)],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-    assert outcome.returncode == 0, outcome.stderr
-    assert (inbox / "shot.png").exists()
-
-
-def test_generated_watch_script_passes_shellcheck(tmp_path: Path) -> None:
-    if shutil.which("shellcheck") is None:
-        pytest.skip("shellcheck not installed")
-    scaffold.scaffold(tmp_path, layers={"monitor", "tools"}, name="D", cover=False, force=False)
-    script = tmp_path / "tools" / "monitor" / "watch_screenshots.sh"
-
-    outcome = subprocess.run(["shellcheck", str(script)], capture_output=True, text=True, check=False)
-
-    assert outcome.returncode == 0, outcome.stdout
