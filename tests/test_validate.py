@@ -145,6 +145,18 @@ def test_validate_project_missing_content_raises(tmp_path: Path) -> None:
         validate.validate_project(tmp_path, strict=False, also=[])
 
 
+def test_validate_project_falls_back_to_report_dir(tmp_path: Path) -> None:
+    report_dir = tmp_path / "report"
+    report_dir.mkdir()
+    (report_dir / "content.yaml").write_text(
+        f'sections:\n  - call: body\n    text: "x {EM_DASH} y"\n', encoding="utf-8"
+    )
+
+    violations = validate.validate_project(tmp_path, strict=False, also=[])
+
+    assert len(violations) == 1
+
+
 def test_validate_project_scans_also_files(tmp_path: Path) -> None:
     _write(tmp_path, 'sections:\n  - call: body\n    text: "clean"\n')
     brief = tmp_path / "brief.md"

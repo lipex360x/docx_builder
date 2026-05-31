@@ -6,6 +6,7 @@ from typing import Any
 
 import yaml
 
+from docx_builder.builder import resolve_content_dir
 from docx_builder.report import EM_DASH
 
 HORIZONTAL_BAR = "―"
@@ -90,9 +91,10 @@ def scan_content(data: dict[str, Any], forbidden: dict[str, str]) -> list[Violat
 
 
 def _load_content(project_dir: Path) -> dict[str, Any]:
-    content_path = project_dir / "content.yaml"
+    content_dir = resolve_content_dir(project_dir)
+    content_path = content_dir / "content.yaml"
     if not content_path.exists():
-        raise FileNotFoundError(f"content.yaml not found in {project_dir}")
+        raise FileNotFoundError(f"content.yaml not found in {content_dir}")
     with open(content_path, encoding="utf-8") as content_file:
         data: dict[str, Any] = yaml.safe_load(content_file) or {}
     return data

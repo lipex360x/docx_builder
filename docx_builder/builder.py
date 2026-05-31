@@ -109,10 +109,19 @@ def _normalise_sections(data: dict[str, Any]) -> tuple[list[dict[str, Any]], boo
     return merged, has_hidden
 
 
-def _load_content_data(project_path: Path) -> dict[str, Any]:
-    content_path = project_path / "content.yaml"
+def resolve_content_dir(project_path: Path) -> Path:
+    if (project_path / "content.yaml").exists():
+        return project_path
+    report_dir = project_path / "report"
+    if (report_dir / "content.yaml").exists():
+        return report_dir
+    return project_path
+
+
+def _load_content_data(content_dir: Path) -> dict[str, Any]:
+    content_path = content_dir / "content.yaml"
     if not content_path.exists():
-        raise FileNotFoundError(f"content.yaml not found in {project_path}")
+        raise FileNotFoundError(f"content.yaml not found in {content_dir}")
 
     with open(content_path) as content_file:
         data: dict[str, Any] = yaml.safe_load(content_file) or {}
@@ -124,19 +133,19 @@ def _contains_toc(items: list[dict[str, Any]]) -> bool:
 
 
 def has_toc(project_dir: str | Path) -> bool:
-    project_path = Path(project_dir).resolve()
-    data = _load_content_data(project_path)
+    content_dir = resolve_content_dir(Path(project_dir).resolve())
+    data = _load_content_data(content_dir)
     front_matter: list[dict[str, Any]] = list(data.get("front_matter") or [])
     body_sections: list[dict[str, Any]] = list(data.get("sections") or [])
     return _contains_toc(front_matter) or _contains_toc(body_sections)
 
 
 def resolve_output_path(project_dir: str | Path, output_override: str | None = None) -> Path:
-    project_path = Path(project_dir).resolve()
-    data = _load_content_data(project_path)
+    content_dir = resolve_content_dir(Path(project_dir).resolve())
+    data = _load_content_data(content_dir)
 
     cover: dict[str, Any] = data.get("cover") or {}
-    return _resolve_output_path(project_path, cover, output_override)
+    return _resolve_output_path(content_dir, cover, output_override)
 
 
 def build(
@@ -146,19 +155,20 @@ def build(
     output_override: str | None = None,
 ) -> Path:
     project_path = Path(project_dir).resolve()
-    data = _load_content_data(project_path)
+    content_dir = resolve_content_dir(project_path)
+    data = _load_content_data(content_dir)
 
     cover: dict[str, Any] = data.get("cover") or {}
     styles_block: dict[str, dict[str, Any]] = data.get("styles") or {}
     page_numbers_enabled = bool(data.get("page_numbers", True))
     resolver = StyleResolver(global_overrides=styles_block)
 
-    output_path = _resolve_output_path(project_path, cover, output_override)
-    images_dir = project_path / "images"
+    output_path = _resolve_output_path(content_dir, cover, output_override)
+    images_dir = content_dir / "images"
 
     merged_sections, has_front_matter = _normalise_sections(data)
 
-    document = _load_document(cover, template_dir, project_path)
+    document = _load_document(cover, template_dir, content_dir)
     if cover:
         fill_cover(document, cover)
     render_sections(document, merged_sections, images_dir=str(images_dir), resolver=resolver)
