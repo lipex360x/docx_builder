@@ -1,7 +1,7 @@
 # docx_builder
 
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
-![Version](https://img.shields.io/badge/version-0.7.0-blue)
+![Version](https://img.shields.io/badge/version-0.10.0-blue)
 
 > Assemble structured Word documents from a YAML content file (and an optional `.docx` cover template), runnable from any working directory.
 
@@ -328,6 +328,7 @@ Full schema, accepted units, color formats, defaults, and every section type's k
 ## CLI reference
 
 ```text
+docx_builder --version | -v
 docx_builder init [DIR] [--full] [--with LAYERS] [--name NAME] [--cover] [--force]
 docx_builder build [DIR] [--output FILE] [--template-dir DIR] [--no-finalize] [--pdf] [--no-update-source] [--open] [--fix-toc-links]
 docx_builder validate [DIR] [--strict] [--also FILE...]
@@ -335,6 +336,7 @@ docx_builder export pdf [DIR] [--input FILE] [--output FILE] [--no-update-source
 docx_builder install skill [--scope local|global]
 ```
 
+- `--version` / `-v` prints the installed version and exits.
 - `DIR` defaults to the current working directory.
 - `init` scaffolds a role-based project (see [Quick start](#quick-start)). `--full` adds every layer plus the embedded `screenshot_intake.py`; `--with a,b,c` adds named optional layers (deps auto-resolved); `--name` sets the project name; `--cover` writes Shape B; `--force` overwrites existing files instead of skipping them. It is idempotent and never clobbers existing files without `--force`.
 - `--output` overrides the YAML `cover.output` and the default pattern (for `build`); for `export pdf` it overrides the destination `.pdf` path.

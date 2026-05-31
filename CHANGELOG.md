@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls (quote, callout, table, code_block, …) without touching the core renderer.
 - PDF-to-YAML transcription workflow — guided protocol for analysing a source PDF (text + visual styles) and emitting a matching `content.yaml`.
 
+## [0.10.0] - 2026-05-31
+
+### Added
+
+- **`docx_builder --version` / `-v`** prints the installed package version and exits 0, instead of erroring with "the following arguments are required: <command>". The version is read from the package metadata, with an `unknown` fallback when the metadata is unavailable. Closes #28.
+
 ## [0.9.0] - 2026-05-31
 
 ### Changed

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from importlib.metadata import PackageNotFoundError, version
 
 from . import _build, _export, _init, _install, _validate
 
@@ -19,6 +20,13 @@ directory argument) and works from anywhere once installed via uv tool.
 """
 
 
+def _package_version() -> str:
+    try:
+        return version("docx_builder")
+    except PackageNotFoundError:
+        return "unknown"
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="docx_builder",
@@ -26,6 +34,7 @@ def _build_parser() -> argparse.ArgumentParser:
         epilog=EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    parser.add_argument("--version", "-v", action="version", version=f"%(prog)s {_package_version()}")
     subparsers = parser.add_subparsers(dest="command", required=True, metavar="<command>")
     _build.register(subparsers)
     _init.register(subparsers)

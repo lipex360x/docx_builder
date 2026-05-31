@@ -121,6 +121,7 @@ For active development on the package, prefer `--editable`. The global `~/.local
 Then from any directory:
 
 ```bash
+docx_builder --version                  # print the installed version (-v alias)
 docx_builder init                       # scaffold a role-based project (report/ + CLAUDE.md + .work/)
 docx_builder init --full --name "Report"  # all layers + screenshot_intake.py; name injected
 docx_builder init --with references,src  # base + named optional layers (deps auto-resolved)
