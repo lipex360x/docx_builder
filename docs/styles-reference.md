@@ -105,7 +105,7 @@ Consumed by the `table` section type. Cell text inherits the common paragraph ke
 | Key | Type | Default | Notes |
 |---|---|---|---|
 | `font_size` | length (pt) | `10pt` | Applied to every cell run. |
-| `font_family` | string | inherits body | When omitted, cells inherit the document body font (the same font a `body` paragraph uses), so the table matches the running text. Set a name (e.g. `Arial`) to override. |
+| `font_family` | string | inherits body | When omitted, cells inherit the document **body** font — the same font a `body` paragraph uses — so the table always matches the running text. Note: a document built **without a cover template** uses the blank `python-docx` theme, whose body font is **Cambria (serif)** while headings are Calibri (sans); there `body`, `bullet` and the table all render serif (it is not a table-specific issue). Set a name (e.g. `Arial`) to override the font for the table only, or set `font_family` on `body`/`bullet`/etc. to change the whole document body. |
 | `header_bold` | bool | `true` | Whether the header row (when present) is bold. Set `false` to keep the header plain. |
 | `color` | hex color | inherits | Text colour of every cell. |
 | `header_color` | hex color | none | Text colour of the header row only — overrides `color` for the header so a dark `header_fill` can carry white header text while the body keeps `color`. |

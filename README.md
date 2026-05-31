@@ -238,7 +238,7 @@ Styling notes:
 - **Shading:** `header_fill` paints the header row, `stripe_fill` zebra-stripes alternate data rows (both accept `#RRGGBB` or `RRGGBB`, off by default).
 - **Header text:** `header_color` colours the header text only (pair it with a dark `header_fill`); the general `color` key paints every cell.
 - **Alignment:** `col_align` overrides alignment per column (great for numbers), `valign` (`top`/`center`/`bottom`) sets the vertical anchor of every cell.
-- **Font:** cells inherit the document body font by default; set `font_family` on the `table` style to force a specific font for the table only.
+- **Font:** a table has no font of its own — cells inherit the document **body** font (the same one `call: body` uses), so the table always matches the running text. A document built without a cover template uses the blank `python-docx` theme, whose body font is **Cambria (serif)** while headings are Calibri (sans) — so `body`, `bullet` and the table all render serif there (not a table-specific issue). Set `font_family` on the `table` style to override the table's font only, or on `body`/`bullet`/etc. (or start from a modern cover template) to change the whole body.
 - **Bullets in a cell:** make a cell a `{bullets: [...]}` mapping and each item becomes a bulleted paragraph inside that cell:
 
   ```yaml
