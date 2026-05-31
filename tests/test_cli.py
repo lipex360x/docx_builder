@@ -63,7 +63,7 @@ def test_cli_init_full_creates_all_layers(tmp_path: Path) -> None:
     main(["init", str(tmp_path), "--full"])
 
     assert (tmp_path / "brief").is_dir()
-    assert (tmp_path / "tools" / "monitor" / "move_screenshot.py").exists()
+    assert (tmp_path / "tools" / "monitor" / "screenshot_intake.py").exists()
     assert (tmp_path / "tools" / "ai-detection" / "README.md").exists()
 
 

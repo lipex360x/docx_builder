@@ -34,10 +34,7 @@ LAYERS: dict[str, Layer] = {
     "monitor": Layer(
         ("tools/monitor",),
         pulls=("tools",),
-        files=(
-            ("monitor/watch_screenshots.sh.tmpl", "tools/monitor/watch_screenshots.sh"),
-            ("monitor/move_screenshot.py.tmpl", "tools/monitor/move_screenshot.py"),
-        ),
+        files=(("monitor/screenshot_intake.py.tmpl", "tools/monitor/screenshot_intake.py"),),
     ),
     "ai-check": Layer(
         ("tools/ai-detection", "report/ai-check"),

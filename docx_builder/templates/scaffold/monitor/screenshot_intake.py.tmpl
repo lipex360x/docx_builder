@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import shutil
+import time
+from pathlib import Path
+
+DEFAULT_SOURCE = Path.home() / "Desktop"
+DEFAULT_INBOX = Path(".work") / "_inbox"
+DEFAULT_INTERVAL = 2.0
+DEFAULT_SETTLE = 0.4
+
+
+def pending_pngs(source: Path) -> list[Path]:
+    if not source.is_dir():
+        return []
+    return sorted(source.glob("*.png"), key=lambda png: (png.stat().st_mtime, png.name))
+
+
+def _move_two_phase(png: Path, inbox: Path, index: int) -> Path:
+    inbox.mkdir(parents=True, exist_ok=True)
+    temp = inbox / f".intake-{index}-{png.name}.part"
+    shutil.move(str(png), str(temp))
+    final = inbox / png.name
+    temp.rename(final)
+    return final
+
+
+def drain(source: Path, inbox: Path, *, size_cache: dict[str, int]) -> list[Path]:
+    moved: list[Path] = []
+    for index, png in enumerate(pending_pngs(source)):
+        name = png.name
+        try:
+            size = png.stat().st_size
+        except FileNotFoundError:
+            continue
+        if size_cache.get(name) != size:
+            size_cache[name] = size
+            continue
+        moved.append(_move_two_phase(png, inbox, index))
+        size_cache.pop(name, None)
+    return moved
+
+
+def run_once(source: Path, inbox: Path, *, settle: float = DEFAULT_SETTLE) -> list[Path]:
+    size_cache: dict[str, int] = {}
+    drain(source, inbox, size_cache=size_cache)
+    time.sleep(settle)
+    return drain(source, inbox, size_cache=size_cache)
+
+
+def watch(source: Path, inbox: Path, *, interval: float = DEFAULT_INTERVAL) -> None:
+    size_cache: dict[str, int] = {}
+    print(f"watching {source} for new *.png; moving into {inbox} (Ctrl-C to stop)")
+    while True:
+        for final in drain(source, inbox, size_cache=size_cache):
+            print(f"intake {final.name}")
+        time.sleep(interval)
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Race-safe screenshot intake (FIFO, quiescent, atomic).")
+    parser.add_argument("source", nargs="?", default=str(DEFAULT_SOURCE))
+    parser.add_argument("inbox", nargs="?", default=str(DEFAULT_INBOX))
+    parser.add_argument("--once", action="store_true", help="drain the backlog once and exit (default: watch loop)")
+    parser.add_argument("--interval", type=float, default=DEFAULT_INTERVAL)
+    parser.add_argument("--settle", type=float, default=DEFAULT_SETTLE)
+    arguments = parser.parse_args(argv)
+    source = Path(arguments.source)
+    inbox = Path(arguments.inbox)
+    if arguments.once:
+        for final in run_once(source, inbox, settle=arguments.settle):
+            print(f"intake {final.name}")
+        return 0
+    watch(source, inbox, interval=arguments.interval)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

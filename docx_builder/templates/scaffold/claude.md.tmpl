@@ -37,6 +37,24 @@ docx_builder validate .       # fail on em/en dash and other AI-tells in prose
 `build` resolves `content.yaml` from this directory, falling back to `report/`.
 Drop figures into `report/images/` and keep their editable sources in `report/assets/`.
 
+## Screenshot intake (monitor layer)
+
+If the `tools/monitor/` layer is present, collect screenshots with a single
+cross-platform Python script (no bash needed):
+
+```bash
+python tools/monitor/screenshot_intake.py          # watch loop (default): FIFO, race-safe
+python tools/monitor/screenshot_intake.py --once   # drain the backlog once and exit
+```
+
+It moves new PNGs from `~/Desktop` into `.work/_inbox` in arrival order, waits for
+each file to finish writing (size quiescence), and uses an atomic two-phase move,
+so images never arrive partial or out of order.
+
+**Stop the monitor when the document is done.** Once the document's goal is fully
+achieved and confirmed, stop the watch loop (Ctrl-C, or end the process). Do not
+leave it running after the task is complete.
+
 ## Prereqs for tools/ (only if you use them)
 
 `uv` and `claude-code` are required to run anything under `tools/`. AI-detection
