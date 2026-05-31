@@ -38,6 +38,37 @@ def _destination_pages(pdf_path: Path) -> list[int | None]:
     return pages
 
 
+def _build_multipage_toc_pdf(destination: Path, destination_pages: list[int]) -> Path:
+    headings = ["Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta"]
+    toc_page_count = 2
+    document = fitz.open()
+    for _ in range(toc_page_count + len(headings)):
+        document.new_page()
+    for index, heading in enumerate(headings):
+        document[toc_page_count + index].insert_text(fitz.Point(72, 200), heading, fontsize=24)
+    half = len(headings) // 2
+    for index, heading in enumerate(headings):
+        toc_page_index = 0 if index < half else 1
+        row = index if index < half else index - half
+        vertical = 100 + row * 30
+        rectangle = fitz.Rect(72, vertical, 300, vertical + 20)
+        toc_page = document[toc_page_index]
+        toc_page.insert_text(fitz.Point(72, vertical + 15), f"{heading} ....... {index + 1}", fontsize=12)
+        toc_page.insert_link(
+            {"kind": fitz.LINK_GOTO, "from": rectangle, "page": destination_pages[index], "to": fitz.Point(0, 0)}
+        )
+    document.save(str(destination))
+    document.close()
+    return destination
+
+
+def _all_destination_pages(pdf_path: Path) -> list[int | None]:
+    document = fitz.open(str(pdf_path))
+    pages = [link.get("page") for page in document for link in page.get_links() if link.get("kind") == fitz.LINK_GOTO]
+    document.close()
+    return pages
+
+
 def test_fix_corrects_shifted_destinations(tmp_path: Path) -> None:
     pdf_path = _build_synthetic_pdf(tmp_path / "report.pdf", destination_pages=[3, 1, 2])
 
@@ -45,6 +76,15 @@ def test_fix_corrects_shifted_destinations(tmp_path: Path) -> None:
 
     assert rewritten == 3
     assert _destination_pages(pdf_path) == [1, 2, 3]
+
+
+def test_fix_corrects_destinations_across_multipage_toc(tmp_path: Path) -> None:
+    pdf_path = _build_multipage_toc_pdf(tmp_path / "report.pdf", destination_pages=[7, 6, 5, 4, 3, 2])
+
+    rewritten = toc_links.fix_toc_links(pdf_path)
+
+    assert rewritten == 6
+    assert _all_destination_pages(pdf_path) == [2, 3, 4, 5, 6, 7]
 
 
 def test_fix_is_noop_when_destinations_already_correct(tmp_path: Path) -> None:
