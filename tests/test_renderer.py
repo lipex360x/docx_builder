@@ -286,6 +286,56 @@ def test_render_sections_unknown_call_raises() -> None:
         render_sections(document, [{"call": "nonexistent"}], images_dir="/nonexistent", resolver=_RESOLVER)
 
 
+def test_render_sections_table() -> None:
+    document = Document()
+    render_sections(
+        document,
+        [{"call": "table", "header": ["A", "B"], "rows": [["a1", "b1"], ["a2", "b2"]]}],
+        images_dir="/nonexistent",
+        resolver=_RESOLVER,
+    )
+    assert len(document.tables) == 1
+    rendered = document.tables[0]
+    assert rendered.cell(0, 0).text == "A"
+    assert rendered.cell(2, 1).text == "b2"
+
+
+def test_render_sections_table_borderless() -> None:
+    from docx.oxml.ns import qn
+
+    document = Document()
+    render_sections(
+        document,
+        [{"call": "table", "rows": [["a", "b"]], "borders": False}],
+        images_dir="/nonexistent",
+        resolver=_RESOLVER,
+    )
+    table_borders = document.tables[0]._tbl.find(qn("w:tblPr")).find(qn("w:tblBorders"))
+    assert table_borders.find(qn("w:top")).get(qn("w:val")) == "none"
+
+
+def test_render_sections_table_inline_style() -> None:
+    document = Document()
+    render_sections(
+        document,
+        [{"call": "table", "header": ["A"], "rows": [["a"]], "style": {"header_bold": False}}],
+        images_dir="/nonexistent",
+        resolver=_RESOLVER,
+    )
+    assert not document.tables[0].cell(0, 0).paragraphs[0].runs[0].bold
+
+
+def test_render_sections_table_ragged_raises() -> None:
+    document = Document()
+    with pytest.raises(ValueError, match="row"):
+        render_sections(
+            document,
+            [{"call": "table", "rows": [["a", "b"], ["c"]]}],
+            images_dir="/nonexistent",
+            resolver=_RESOLVER,
+        )
+
+
 def test_render_sections_toc_inserts_toc_field() -> None:
     document = Document()
     render_sections(document, [{"call": "toc", "levels": "1-2"}], images_dir="/nonexistent", resolver=_RESOLVER)

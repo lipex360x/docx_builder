@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from functools import partial
 from typing import Any
 
 from docx.document import Document
@@ -12,6 +11,7 @@ from docx_builder.figure import figure as _figure_base
 from docx_builder.figure import figure_pair as _figure_pair_base
 from docx_builder.styles import StyleResolver
 from docx_builder.summary import build_summary
+from docx_builder.table import table as _table_base
 
 _TEXT_DISPATCHERS = {
     "h1": heading_1,
@@ -45,6 +45,90 @@ def fill_cover(document: Document, cover: dict[str, object]) -> None:
     rest_run.font.size = Pt(11)
 
 
+def _render_media(
+    document: Document,
+    item: dict[str, Any],
+    *,
+    images_dir: str,
+    resolver: StyleResolver,
+    inline_style: dict[str, Any] | None,
+) -> bool:
+    call = str(item["call"])
+
+    if call == "figure":
+        _figure_base(
+            document,
+            str(item["filename"]),
+            str(item["label"]),
+            str(item["caption"]),
+            images_dir=images_dir,
+            figure_style=resolver.resolve("figure", inline_style),
+            caption_style=resolver.resolve("figure_caption", item.get("caption_style")),
+            width=item.get("width"),
+        )
+        return True
+
+    if call == "figure_pair":
+        _figure_pair_base(
+            document,
+            str(item["filename1"]),
+            str(item["filename2"]),
+            str(item["label"]),
+            str(item["caption"]),
+            images_dir=images_dir,
+            figure_style=resolver.resolve("figure_pair", inline_style),
+            caption_style=resolver.resolve("figure_caption", item.get("caption_style")),
+            width1=item.get("width1"),
+            width2=item.get("width2"),
+        )
+        return True
+
+    if call == "table":
+        _table_base(
+            document,
+            [list(row) for row in item.get("rows", [])],
+            resolver.resolve("table", inline_style),
+            header=item.get("header"),
+            widths=item.get("widths"),
+            borders=bool(item.get("borders", True)),
+        )
+        return True
+
+    return False
+
+
+def _render_item(
+    document: Document,
+    item: dict[str, Any],
+    *,
+    images_dir: str,
+    resolver: StyleResolver,
+) -> None:
+    call = str(item["call"])
+    inline_style = item.get("style") if isinstance(item.get("style"), dict) else None
+
+    if call == "page_break":
+        page_break(document)
+        return
+
+    if call == "toc":
+        build_summary(document, levels=str(item.get("levels", "1-2")))
+        return
+
+    if call in _TEXT_DISPATCHERS:
+        _TEXT_DISPATCHERS[call](document, str(item["text"]), resolver.resolve(call, inline_style))
+        return
+
+    if call == "bold_lead":
+        bold_lead(document, str(item["bold"]), str(item["rest"]), resolver.resolve("bold_lead", inline_style))
+        return
+
+    if _render_media(document, item, images_dir=images_dir, resolver=resolver, inline_style=inline_style):
+        return
+
+    raise ValueError(f"unknown call: {call!r}")
+
+
 def render_sections(
     document: Document,
     sections: list[dict[str, Any]],
@@ -52,9 +136,6 @@ def render_sections(
     images_dir: str,
     resolver: StyleResolver,
 ) -> None:
-    figure_call = partial(_figure_base, images_dir=images_dir)
-    figure_pair_call = partial(_figure_pair_base, images_dir=images_dir)
-
     has_any_hidden = any(bool(item.get("hide_page_counter")) for item in sections)
     section_break_added = False
 
@@ -68,54 +149,4 @@ def render_sections(
             if call == "page_break":
                 continue
 
-        inline_style = item.get("style") if isinstance(item.get("style"), dict) else None
-
-        if call == "page_break":
-            page_break(document)
-            continue
-
-        if call == "toc":
-            build_summary(document, levels=str(item.get("levels", "1-2")))
-            continue
-
-        if call in _TEXT_DISPATCHERS:
-            style = resolver.resolve(call, inline_style)
-            _TEXT_DISPATCHERS[call](document, str(item["text"]), style)
-            continue
-
-        if call == "bold_lead":
-            style = resolver.resolve("bold_lead", inline_style)
-            bold_lead(document, str(item["bold"]), str(item["rest"]), style)
-            continue
-
-        if call == "figure":
-            fig_style = resolver.resolve("figure", inline_style)
-            caption_style = resolver.resolve("figure_caption", item.get("caption_style"))
-            figure_call(
-                document,
-                str(item["filename"]),
-                str(item["label"]),
-                str(item["caption"]),
-                figure_style=fig_style,
-                caption_style=caption_style,
-                width=item.get("width"),
-            )
-            continue
-
-        if call == "figure_pair":
-            fig_style = resolver.resolve("figure_pair", inline_style)
-            caption_style = resolver.resolve("figure_caption", item.get("caption_style"))
-            figure_pair_call(
-                document,
-                str(item["filename1"]),
-                str(item["filename2"]),
-                str(item["label"]),
-                str(item["caption"]),
-                figure_style=fig_style,
-                caption_style=caption_style,
-                width1=item.get("width1"),
-                width2=item.get("width2"),
-            )
-            continue
-
-        raise ValueError(f"unknown call: {call!r}")
+        _render_item(document, item, images_dir=images_dir, resolver=resolver)

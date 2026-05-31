@@ -1,6 +1,6 @@
 [project]
 name = "docx_builder"
-version = "0.10.0"
+version = "0.11.0"
 description = "Generate DOCX reports from a content.yaml in any working directory."
 requires-python = ">=3.11"
 dependencies = [
@@ -52,7 +52,7 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RET", "C90", "S", "N", "PLR"]
 "docx_builder/figure.py" = ["PLR0913"]
 "docx_builder/pagination.py" = ["SLF001"]
 "docx_builder/summary.py" = ["SLF001"]
-"docx_builder/table.py" = ["SLF001"]
+"docx_builder/table.py" = ["SLF001", "PLR0913"]
 
 [tool.mypy]
 strict = true

@@ -9,8 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned
 
-- Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls (quote, callout, table, code_block, …) without touching the core renderer.
+- Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls (quote, callout, code_block, …) without touching the core renderer.
 - PDF-to-YAML transcription workflow — guided protocol for analysing a source PDF (text + visual styles) and emitting a matching `content.yaml`.
+
+## [0.11.0] - 2026-05-31
+
+### Added
+
+- **Generic `table` section type for `content.yaml`.** A new `call: table` renders a tabular grid from a list of `rows` (each a list of cell values), with an optional bold `header` row. `widths` set per-column width as a percentage of the usable page width (must sum to 100, so the table never overflows the margins); `borders` (default `true`) draws single-line borders via OXML — template-independent, so it works regardless of the cover template's named styles — or reuses the existing borderless path when `false`. Cell text honours the `table` style key (defaults: `font_size: 10pt`, `header_bold: true`, `align: left`) and a `\n` in a cell becomes a line break. Ragged rows, mismatched/`!=100` `widths`, and empty tables raise a clear error. `docx_builder validate` scans table cell prose (header + every row cell) for the same em/en-dash & AI-tell characters it already gates in `body`/`caption`. Closes #30.
 
 ## [0.10.0] - 2026-05-31
 
