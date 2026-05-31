@@ -20,39 +20,108 @@ def _flagged_sections(count: int) -> dict[str, list[dict[str, object]]]:
     return {"sections": [{"call": "body", "text": "x", "hide_page_counter": True} for _ in range(count)]}
 
 
-def test_init_creates_content_yaml(tmp_path: Path) -> None:
+def test_init_creates_report_content_yaml(tmp_path: Path) -> None:
     init_project(tmp_path)
 
-    assert (tmp_path / "content.yaml").exists()
+    assert (tmp_path / "report" / "content.yaml").exists()
+    assert (tmp_path / "CLAUDE.md").exists()
 
 
-def test_init_does_not_create_images_dir(tmp_path: Path) -> None:
+def test_init_defaults_name_to_dir(tmp_path: Path) -> None:
     init_project(tmp_path)
 
-    assert not (tmp_path / "images").exists()
+    assert tmp_path.name in (tmp_path / "report" / "content.yaml").read_text()
 
 
-def test_init_skeleton_is_minimal(tmp_path: Path) -> None:
+def test_init_idempotent_preserves_existing(tmp_path: Path) -> None:
+    init_project(tmp_path)
+    (tmp_path / "report" / "content.yaml").write_text("custom: true\n")
+
     init_project(tmp_path)
 
-    content = (tmp_path / "content.yaml").read_text()
-    assert "content.yaml" in content
-    assert "styles-reference.md" in content
+    assert "custom: true" in (tmp_path / "report" / "content.yaml").read_text()
 
 
-def test_init_refuses_existing_without_force(tmp_path: Path) -> None:
-    (tmp_path / "content.yaml").write_text("existing")
-
-    with pytest.raises(FileExistsError):
-        init_project(tmp_path)
-
-
-def test_init_overwrites_with_force(tmp_path: Path) -> None:
-    (tmp_path / "content.yaml").write_text("existing")
+def test_init_force_overwrites(tmp_path: Path) -> None:
+    init_project(tmp_path)
+    (tmp_path / "report" / "content.yaml").write_text("custom: true\n")
 
     init_project(tmp_path, force=True)
 
-    assert "existing" not in (tmp_path / "content.yaml").read_text()
+    assert "custom: true" not in (tmp_path / "report" / "content.yaml").read_text()
+
+
+def test_cli_init_scaffolds_base(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    exit_code = main(["init", str(tmp_path)])
+
+    assert exit_code == 0
+    assert (tmp_path / "report" / "content.yaml").exists()
+    assert "Scaffolded" in capsys.readouterr().out
+
+
+def test_cli_init_full_creates_all_layers(tmp_path: Path) -> None:
+    main(["init", str(tmp_path), "--full"])
+
+    assert (tmp_path / "brief").is_dir()
+    assert (tmp_path / "tools" / "monitor" / "move_screenshot.py").exists()
+    assert (tmp_path / "tools" / "ai-detection" / "README.md").exists()
+
+
+def test_cli_init_with_named_layers(tmp_path: Path) -> None:
+    main(["init", str(tmp_path), "--with", "references,src"])
+
+    assert (tmp_path / "references").is_dir()
+    assert (tmp_path / "src").is_dir()
+    assert not (tmp_path / "brief").exists()
+
+
+def test_cli_init_unknown_layer_errors(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    exit_code = main(["init", str(tmp_path), "--with", "bogus"])
+
+    assert exit_code == 1
+    assert "unknown" in capsys.readouterr().err.lower()
+
+
+def test_cli_init_cover_writes_shape_b(tmp_path: Path) -> None:
+    main(["init", str(tmp_path), "--cover"])
+
+    data = yaml.safe_load((tmp_path / "report" / "content.yaml").read_text())
+    assert "cover" in data
+
+
+def test_cli_init_name_injected_into_claude_md(tmp_path: Path) -> None:
+    main(["init", str(tmp_path), "--name", "Acme"])
+
+    assert "Acme" in (tmp_path / "CLAUDE.md").read_text()
+
+
+def test_cli_init_help_lists_flags(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit):
+        main(["init", "--help"])
+
+    output = capsys.readouterr().out
+    assert "--full" in output
+    assert "--with" in output
+
+
+def test_cli_init_full_warns_when_tool_missing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr("docx_builder.cli._init.shutil.which", lambda tool: None)
+
+    main(["init", str(tmp_path), "--full"])
+
+    assert "not found on PATH" in capsys.readouterr().err
+
+
+def test_cli_init_full_silent_when_tools_present(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr("docx_builder.cli._init.shutil.which", lambda tool: f"/usr/bin/{tool}")
+
+    main(["init", str(tmp_path), "--full"])
+
+    assert "not found on PATH" not in capsys.readouterr().err
 
 
 def test_cli_build_returns_zero_on_success(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -426,7 +495,7 @@ def test_cli_init_then_build(tmp_path: Path) -> None:
     build_exit = main(["build", str(tmp_path)])
     assert build_exit == 0
 
-    docx_files = list(tmp_path.glob("*.docx"))
+    docx_files = list((tmp_path / "report").glob("*.docx"))
     assert len(docx_files) == 1
 
 
@@ -487,22 +556,22 @@ def test_build_missing_content_suggests_init(tmp_path: Path, capsys: pytest.Capt
     assert "docx_builder init" in error
 
 
-def test_init_existing_suggests_force(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    (tmp_path / "content.yaml").write_text("existing")
+def test_init_idempotent_skips_existing(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    main(["init", str(tmp_path)])
+    capsys.readouterr()
 
     exit_code = main(["init", str(tmp_path)])
 
-    assert exit_code == 1
-    error = capsys.readouterr().err
-    assert "--force" in error
+    assert exit_code == 0
+    assert "left unchanged" in capsys.readouterr().out
 
 
-def test_init_prints_created_message(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+def test_init_prints_summary_message(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     exit_code = main(["init", str(tmp_path)])
 
     assert exit_code == 0
     output = capsys.readouterr().out
-    assert output.startswith("Created:")
+    assert output.startswith("Scaffolded")
     assert "Initialized" not in output
 
 

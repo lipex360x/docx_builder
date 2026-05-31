@@ -39,13 +39,6 @@ def print_content_not_found(project_dir: Path) -> None:
     )
 
 
-def print_content_exists(project_dir: Path) -> None:
-    print(
-        f"content.yaml already exists in {project_dir}.\nOverwrite it with: docx_builder init --force",
-        file=sys.stderr,
-    )
-
-
 def print_missing_path(message: str) -> None:
     print(message, file=sys.stderr)
 

@@ -24,8 +24,11 @@ If the request is **not** about generating/editing docs through this tool, do no
 ## Core workflow
 
 ```bash
-docx_builder init             # writes a marker content.yaml in cwd (3-line comment, nothing else)
-docx_builder build            # build using content.yaml in cwd
+docx_builder init             # scaffold a role-based project (report/ + CLAUDE.md + .gitignore + .work/)
+docx_builder init --full      # scaffold every layer + embedded monitor scripts
+docx_builder init --with references,src   # base + named optional layers (deps auto-resolved)
+docx_builder init --cover     # content.yaml with cover + TOC (Shape B)
+docx_builder build            # build using content.yaml in cwd (falls back to report/content.yaml)
 docx_builder build /path/dir  # build from another directory
 docx_builder build --output Custom.docx
 docx_builder build --template-dir ~/templates
@@ -41,7 +44,9 @@ docx_builder export pdf --open  # convert then open both the .pdf and the finali
 docx_builder export pdf --fix-toc-links  # opt-in: repair ToC hyperlinks Word's PDF engine shifted
 ```
 
-`init` does NOT scaffold a placeholder document. It only writes a tiny marker file pointing back at this skill. You (the assistant) are expected to author the real `content.yaml` based on what the user actually wants to build — CV, report, manual, paper, contract, fiction — each gets a tailored YAML.
+As of v0.8, `init` scaffolds a **role-based project structure**, not a marker file. Base `init` creates `report/` (with `content.yaml`, `images/`, `assets/`, `output/`, `templates/`) plus a single conditional `CLAUDE.md`, a `.gitignore` and a `.work/` scratch dir. `--with LAYERS` adds optional layers (`brief`, `references`, `src`, `meta`, `tools`, `monitor`, `ai-check`; deps auto-resolved, so `monitor`/`ai-check` pull `tools`), `--full` adds them all plus generic embedded monitor scripts, `--name` is injected into `CLAUDE.md` and `content.yaml` (defaulting to the directory name), and `--cover` writes Shape B. The scaffolder is **idempotent and additive**: re-running only fills gaps and never overwrites existing files without `--force`. The `ai-check` layer scaffolds the directories plus a README only (no detector scripts). The generated `content.yaml` is a Shape A (or Shape B) starter with `Replace me.` body text, so you (the assistant) still author the real content for whatever the user is building (CV, report, manual, paper, contract, fiction).
+
+`build`, `validate` and the export path resolve `content.yaml` from the given directory, falling back to its `report/` subdirectory, so `docx_builder build .` works on a scaffolded project (where `content.yaml` lives under `report/`). A root-level `content.yaml` still takes precedence.
 
 After every `build`, the CLI prints a short report: word count, estimated reading time (200 wpm), a page-count line (always `n/a` for a plain build — the real count is only known after the Word/PDF export), and an em-dash (`U+2014`) counter. When em-dashes are present the line is flagged `<- remove before shipping`. The user actively dislikes em-dashes: when authoring `content.yaml`, do not introduce `U+2014` characters, and if the report flags any, locate and replace them. The report only counts and flags — it never strips automatically.
 

@@ -1,0 +1,22 @@
+# AI-detection layer
+
+`docx_builder init` scaffolds this directory but ships **no** detector scripts:
+the drivers are project-specific and depend on a browser plus network access,
+so you bring your own.
+
+Drop your AI-detection drivers here. The conventional layout is:
+
+```
+tools/ai-detection/
+  check.sh                entry point: run the prose through every detector
+  run_all_detectors.py    orchestrator
+  common/                 shared driver base, trace cleanup, consent handling
+  detectors/              one folder per detector
+```
+
+Write each detector's output to `report/ai-check/` so it sits alongside the build.
+
+## Prereqs
+
+`uv` and `claude-code`, plus a Chrome or Chromium with remote debugging enabled
+and network access to the detection services. These run only when you invoke them.

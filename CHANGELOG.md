@@ -11,7 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls (quote, callout, table, code_block, …) without touching the core renderer.
 - PDF-to-YAML transcription workflow — guided protocol for analysing a source PDF (text + visual styles) and emitting a matching `content.yaml`.
-- Role-based `init` scaffolding (`--full`, `--with`, `--name`, `--cover`) — scaffold a project structure plus a starter `CLAUDE.md` (issue #22).
+
+## [0.8.0] - 2026-05-31
+
+### Added
+
+- **`docx_builder init` now scaffolds a role-based project structure instead of writing a marker `content.yaml`.** Base `init` creates `report/{content.yaml, images/, assets/, output/, templates/}` plus a single conditional `CLAUDE.md`, a `.gitignore` and a `.work/` scratch dir. `--with LAYERS` adds named optional layers (`brief`, `references`, `src`, `meta`, `tools`, `monitor`, `ai-check`) with dependencies auto-resolved (`monitor` and `ai-check` pull `tools`); `--full` adds them all plus the embedded, generic monitor scripts (`watch_screenshots.sh`, `move_screenshot.py`). `--name` is injected into `CLAUDE.md` and `content.yaml` (defaulting to the directory name); `--cover` writes a cover + TOC `content.yaml` (Shape B). The scaffolder is **idempotent and additive**: re-running (including `--full` over a lean project) only fills the gaps and never overwrites existing files without `--force`; empty layer dirs receive a `.gitkeep`, and `init` prints a summary of what it created or left unchanged. The generated `CLAUDE.md` is a single stable file that documents every layer conditionally, so it stays valid for any layer subset and never needs regenerating. The `ai-check` layer scaffolds `tools/ai-detection/` + `report/ai-check/` with a README only and no detector scripts. New module `docx_builder/scaffold.py`. Closes #22.
+
+### Changed
+
+- **`build`, `validate` and the PDF export now resolve `content.yaml` from a `report/` subdirectory as a fallback** when it is not in the project root, so `docx_builder build .` works on a scaffolded project. `images/` and `output/` follow into `report/`. A root-level `content.yaml` still takes precedence, so existing projects are unaffected. New `resolve_content_dir()`. This is a directory fallback only; selecting a different content file name remains the scope of #9.
 
 ## [0.7.0] — 2026-05-31
 

@@ -79,6 +79,7 @@ docx_builder/
   toc_links.py        # opt-in PDF ToC-hyperlink repair via PyMuPDF (pdf-links extra)
   report.py           # post-build report: words, reading time, em-dash counter
   validate.py         # content.yaml prose check: em/en dash & AI-tells (gateable)
+  scaffold.py         # role-based init scaffolder: layers, deps, idempotence, .gitkeep
   elements.py         # h1, h2, h3, body, bullet, bold_lead, reference, page_break
   figure.py           # figure(), figure_pair()
   pagination.py       # PAGE / NUMPAGES footer (style-driven)
@@ -90,8 +91,9 @@ docx_builder/
   skill/
     SKILL.md          # Claude Code skill, shipped as package data
   templates/
-    content.skeleton.yaml      # Used by `docx_builder init`
+    content.skeleton.yaml      # Legacy starter (kept for reference)
     default_styles.yaml        # Built-in style defaults
+    scaffold/                  # init templates: CLAUDE.md, .gitignore, content shapes, monitor scripts (.tmpl)
 docs/
   styles-reference.md          # Full style schema (no-AI manual)
 tests/                # pytest suite (163 tests)
@@ -119,7 +121,10 @@ For active development on the package, prefer `--editable`. The global `~/.local
 Then from any directory:
 
 ```bash
-docx_builder init                       # write a marker content.yaml (no images/ dir)
+docx_builder init                       # scaffold a role-based project (report/ + CLAUDE.md + .work/)
+docx_builder init --full --name "Report"  # all layers + monitor scripts; name injected
+docx_builder init --with references,src  # base + named optional layers (deps auto-resolved)
+docx_builder init --cover                # content.yaml with cover + TOC (Shape B)
 docx_builder build                      # build using content.yaml in cwd
 docx_builder build /some/dir            # build in another dir
 docx_builder build --output Custom.docx

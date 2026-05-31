@@ -227,6 +227,60 @@ def test_build_page_numbers_disabled_clears_all_footers(tmp_path: Path) -> None:
         assert "PAGE" not in footer_xml
 
 
+def test_build_falls_back_to_report_subdir(tmp_path: Path) -> None:
+    report_dir = tmp_path / "report"
+    report_dir.mkdir()
+    _write_yaml(report_dir / "content.yaml", {"sections": [{"call": "h1", "text": "From report dir"}]})
+
+    build(str(tmp_path))
+
+    assert (report_dir / "Report.docx").exists()
+    assert not (tmp_path / "Report.docx").exists()
+
+
+def test_build_prefers_root_content_over_report(tmp_path: Path) -> None:
+    _write_yaml(tmp_path / "content.yaml", {"sections": [{"call": "h1", "text": "Root"}]})
+    report_dir = tmp_path / "report"
+    report_dir.mkdir()
+    _write_yaml(report_dir / "content.yaml", {"sections": [{"call": "h1", "text": "Report"}]})
+
+    build(str(tmp_path))
+
+    assert (tmp_path / "Report.docx").exists()
+    assert not (report_dir / "Report.docx").exists()
+
+
+def test_has_toc_uses_report_fallback(tmp_path: Path) -> None:
+    report_dir = tmp_path / "report"
+    report_dir.mkdir()
+    content = {"front_matter": [{"call": "toc"}], "sections": [{"call": "h1", "text": "X"}]}
+    _write_yaml(report_dir / "content.yaml", content)
+
+    assert has_toc(tmp_path) is True
+
+
+def test_build_report_fallback_uses_report_images(tmp_path: Path) -> None:
+    report_dir = tmp_path / "report"
+    (report_dir / "images").mkdir(parents=True)
+    content = {"sections": [{"call": "figure", "filename": "missing.png", "label": "F1", "caption": "C"}]}
+    _write_yaml(report_dir / "content.yaml", content)
+
+    build(str(tmp_path))
+
+    assert (report_dir / "Report.docx").exists()
+
+
+def test_build_report_fallback_output_subdir(tmp_path: Path) -> None:
+    report_dir = tmp_path / "report"
+    (report_dir / "output").mkdir(parents=True)
+    cover = {"output": "output/Doc_{number}.docx", "number": "0001"}
+    _write_yaml(report_dir / "content.yaml", {"cover": cover, "sections": []})
+
+    build(str(tmp_path))
+
+    assert (report_dir / "output" / "Doc_0001.docx").exists()
+
+
 def test_build_hide_page_counter_on_sections_suppresses_cover_footer(tmp_path: Path, cover_dir: Path) -> None:
     content = {
         "cover": _MINIMAL_COVER,

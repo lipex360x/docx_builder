@@ -82,7 +82,7 @@ cd ~/projects/my-report
 docx_builder init
 ```
 
-`init` writes a tiny marker `content.yaml` (a short comment pointing at the docs and the Claude Code skill). It does **not** scaffold a placeholder document and does **not** create an `images/` folder. You author the real `content.yaml` for whatever you are building: CV, report, manual, paper, contract, or fiction.
+`init` scaffolds a **role-based project structure**: a `report/` directory (with `content.yaml`, `images/`, `assets/`, `output/`, `templates/`), a single conditional `CLAUDE.md`, a `.gitignore` and a `.work/` scratch dir. Add optional layers with `--with brief,references,src,meta,tools,monitor,ai-check` (dependencies auto-resolved), or `--full` for all of them plus the embedded monitor scripts. `--name` is injected into `CLAUDE.md` and `content.yaml` (it defaults to the directory name); `--cover` writes a cover + TOC `content.yaml` (Shape B). The scaffolder is **idempotent**: re-running only adds what is missing and never overwrites existing files without `--force`. The generated `content.yaml` is a starter with `Replace me.` body text, so you still author the real content for whatever you are building: CV, report, manual, paper, contract, or fiction. `build` resolves `content.yaml` from the project root, falling back to `report/`, so `docx_builder build .` works on a scaffolded project.
 
 ### 2. Edit `content.yaml`
 
@@ -300,6 +300,7 @@ Full schema, accepted units, color formats, defaults, and every section type's k
 │   ├── toc_links.py          # opt-in PDF ToC-hyperlink repair via PyMuPDF (pdf-links extra)
 │   ├── report.py             # post-build report: words, reading time, em-dash counter
 │   ├── validate.py           # content.yaml prose check: em/en dash & other AI-tells
+│   ├── scaffold.py           # role-based init scaffolder: layers, idempotence, .gitkeep
 │   ├── elements.py           # paragraph primitives (h1, h2, h3, body, bullet, …)
 │   ├── figure.py             # figure() and figure_pair() with centred captions
 │   ├── pagination.py         # PAGE / NUMPAGES footer
@@ -311,8 +312,9 @@ Full schema, accepted units, color formats, defaults, and every section type's k
 │   ├── skill/
 │   │   └── SKILL.md          # Claude Code skill, shipped as package data
 │   └── templates/
-│       ├── content.skeleton.yaml      # used by `docx_builder init`
-│       └── default_styles.yaml        # built-in style defaults
+│       ├── content.skeleton.yaml      # legacy starter (kept for reference)
+│       ├── default_styles.yaml        # built-in style defaults
+│       └── scaffold/                  # init templates: CLAUDE.md, .gitignore, content shapes, monitor scripts
 ├── docs/
 │   └── styles-reference.md   # full style schema (no-AI manual)
 ├── tests/                    # pytest suite
@@ -326,7 +328,7 @@ Full schema, accepted units, color formats, defaults, and every section type's k
 ## CLI reference
 
 ```text
-docx_builder init [DIR] [--force]
+docx_builder init [DIR] [--full] [--with LAYERS] [--name NAME] [--cover] [--force]
 docx_builder build [DIR] [--output FILE] [--template-dir DIR] [--no-finalize] [--pdf] [--no-update-source] [--open] [--fix-toc-links]
 docx_builder validate [DIR] [--strict] [--also FILE...]
 docx_builder export pdf [DIR] [--input FILE] [--output FILE] [--no-update-source] [--open] [--fix-toc-links]
@@ -334,6 +336,7 @@ docx_builder install skill [--scope local|global]
 ```
 
 - `DIR` defaults to the current working directory.
+- `init` scaffolds a role-based project (see [Quick start](#quick-start)). `--full` adds every layer plus the embedded monitor scripts; `--with a,b,c` adds named optional layers (deps auto-resolved); `--name` sets the project name; `--cover` writes Shape B; `--force` overwrites existing files instead of skipping them. It is idempotent and never clobbers existing files without `--force`.
 - `--output` overrides the YAML `cover.output` and the default pattern (for `build`); for `export pdf` it overrides the destination `.pdf` path.
 - `--template-dir` overrides the template lookup directory.
 - `validate` parses `content.yaml` and scans only the prose fields (`h1`/`h2`/`h3`, `body`, `bullet`, `caption`, `bold_lead`, `reference`), ignoring keys, paths and filenames. It prints each hit with its section, field and position, and exits 1 when any forbidden character is found (0 when clean), so it can gate a pre-commit hook or CI step. Default rules flag em-dash (`U+2014`), horizontal bar (`U+2015`) and figure dash (`U+2012`); `--strict` adds en-dash (`U+2013`). `--also FILE...` scans extra plain-text/markdown files with the same rules.

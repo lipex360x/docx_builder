@@ -1,0 +1,16 @@
+cover:
+  template: templates/Cover.docx
+  output: "output/__PROJECT_NAME___{number}.docx"
+  number: "0001"
+  rows:
+    - __PROJECT_NAME__
+
+front_matter:
+  - call: page_break
+  - call: toc
+
+sections:
+  - call: h1
+    text: Introduction
+  - call: body
+    text: Replace me.
