@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls (quote, callout, table, code_block, …) without touching the core renderer.
 - PDF-to-YAML transcription workflow — guided protocol for analysing a source PDF (text + visual styles) and emitting a matching `content.yaml`.
+- Role-based `init` scaffolding (`--full`, `--with`, `--name`, `--cover`) — scaffold a project structure plus a starter `CLAUDE.md` (issue #22).
+
+## [0.7.0] — 2026-05-31
+
+### Added
+
+- **`docx_builder validate` — a content check that fails on em/en dash and other AI-tells in `content.yaml` prose.** It parses the `content.yaml` of the target directory and scans only the prose fields (`h1`/`h2`/`h3`, `body`, `bullet`, figure `caption`, `bold_lead` bold + rest, `reference`), ignoring keys, paths and filenames so a hyphen in a filename or a key never triggers a false positive. It reports each occurrence with its section, field and position, and exits 1 when any is found (0 when clean), so it can gate a pre-commit hook or CI step. Default rules flag em-dash (`U+2014`), horizontal bar (`U+2015`) and figure dash (`U+2012`); `--strict` adds en-dash (`U+2013`). `--also FILE...` scans extra plain-text/markdown files (e.g. a brief) with the same rules. It reuses the em-dash constant from `docx_builder/report.py`, so the forbidden-character set is defined once. This is the gateable counterpart to the post-build report, which only counts em-dashes and never fails. New module `docx_builder/validate.py` (`scan_content`, `validate_project`, `format_violations`). Closes #23.
 
 ## [0.6.1] — 2026-05-31
 

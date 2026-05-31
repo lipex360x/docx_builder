@@ -33,6 +33,8 @@ docx_builder build --no-finalize  # skip the Word TOC-finalize pass (pure/fast; 
 docx_builder build --pdf      # build then export to PDF in one shot (macOS + Word)
 docx_builder build --open     # build, then open the .docx (macOS)
 docx_builder build --pdf --open  # build, export, then open BOTH the .pdf and the .docx in Word (macOS)
+docx_builder validate         # fail (exit 1) on em/en dash & AI-tells in content.yaml prose
+docx_builder validate --strict   # also flag en-dash (U+2013)
 docx_builder export pdf       # convert the built .docx to PDF (macOS + Word)
 docx_builder export pdf --no-update-source  # do not write the populated TOC back over the source
 docx_builder export pdf --open  # convert then open both the .pdf and the finalized .docx in Word (macOS)
@@ -66,6 +68,16 @@ docx_builder build [DIR] [--no-finalize] [--pdf] [--no-update-source] [--open] [
 **Never trust `docProps/app.xml`'s `<Pages>` for the page count.** `python-docx` writes whatever was cached at the last serialisation — it is not recalculated and is routinely wrong (e.g. reports 1 page when Word renders 2). The PDF export path is the only reliable way to learn the true page count.
 
 Errors are actionable and exit 1: non-macOS → `"PDF export requires macOS + Microsoft Word"`; Word not installed → points at the missing application; input `.docx` missing → names the resolved path.
+
+## Validating prose (em/en dash gate)
+
+```bash
+docx_builder validate [DIR] [--strict] [--also FILE...]
+```
+
+`validate` parses `content.yaml` and scans **only the prose fields** (`h1`/`h2`/`h3`, `body`, `bullet`, figure `caption`, `bold_lead` bold + rest, `reference`), ignoring keys, paths and filenames so a hyphen in a filename or a key never trips it. It prints each hit with its section, field and position, and exits 1 if any are found (0 when clean), so it can gate a pre-commit hook or CI step. Default rules flag em-dash (`U+2014`), horizontal bar (`U+2015`) and figure dash (`U+2012`); `--strict` adds en-dash (`U+2013`), recommended for prose. `--also FILE...` runs the same check over extra plain-text/markdown files such as a brief.
+
+This is the **gateable** counterpart to the post-build report: `build` only counts em-dashes and never fails, while `validate` exits non-zero so the no-em-dash rule can be enforced. When the user wants to keep a document clean of em-dashes, wire `docx_builder validate --strict` into their pre-commit or CI rather than relying on the build-time warning alone.
 
 ## content.yaml structure
 

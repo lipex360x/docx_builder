@@ -1,7 +1,7 @@
 # docx_builder
 
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
-![Version](https://img.shields.io/badge/version-0.4.0-blue)
+![Version](https://img.shields.io/badge/version-0.7.0-blue)
 
 > Assemble structured Word documents from a YAML content file (and an optional `.docx` cover template), runnable from any working directory.
 
@@ -293,11 +293,13 @@ Full schema, accepted units, color formats, defaults, and every section type's k
 │   │   ├── _build.py         # build command (+ --pdf / --open / --no-finalize / --fix-toc-links)
 │   │   ├── _init.py          # init command
 │   │   ├── _export.py        # export pdf command (+ --fix-toc-links)
-│   │   └── _install.py       # install skill command
+│   │   ├── _install.py       # install skill command
+│   │   └── _validate.py      # validate command (em/en dash gate)
 │   ├── builder.py            # build(), init_project(), has_toc()
 │   ├── export.py             # export_pdf() and finalize_source() via Word + JXA (macOS)
 │   ├── toc_links.py          # opt-in PDF ToC-hyperlink repair via PyMuPDF (pdf-links extra)
 │   ├── report.py             # post-build report: words, reading time, em-dash counter
+│   ├── validate.py           # content.yaml prose check: em/en dash & other AI-tells
 │   ├── elements.py           # paragraph primitives (h1, h2, h3, body, bullet, …)
 │   ├── figure.py             # figure() and figure_pair() with centred captions
 │   ├── pagination.py         # PAGE / NUMPAGES footer
@@ -326,6 +328,7 @@ Full schema, accepted units, color formats, defaults, and every section type's k
 ```text
 docx_builder init [DIR] [--force]
 docx_builder build [DIR] [--output FILE] [--template-dir DIR] [--no-finalize] [--pdf] [--no-update-source] [--open] [--fix-toc-links]
+docx_builder validate [DIR] [--strict] [--also FILE...]
 docx_builder export pdf [DIR] [--input FILE] [--output FILE] [--no-update-source] [--open] [--fix-toc-links]
 docx_builder install skill [--scope local|global]
 ```
@@ -333,6 +336,7 @@ docx_builder install skill [--scope local|global]
 - `DIR` defaults to the current working directory.
 - `--output` overrides the YAML `cover.output` and the default pattern (for `build`); for `export pdf` it overrides the destination `.pdf` path.
 - `--template-dir` overrides the template lookup directory.
+- `validate` parses `content.yaml` and scans only the prose fields (`h1`/`h2`/`h3`, `body`, `bullet`, `caption`, `bold_lead`, `reference`), ignoring keys, paths and filenames. It prints each hit with its section, field and position, and exits 1 when any forbidden character is found (0 when clean), so it can gate a pre-commit hook or CI step. Default rules flag em-dash (`U+2014`), horizontal bar (`U+2015`) and figure dash (`U+2012`); `--strict` adds en-dash (`U+2013`). `--also FILE...` scans extra plain-text/markdown files with the same rules.
 - `--no-finalize` (on `build`) skips the Word pass that populates the TOC, keeping `build` pure and fast (useful for CI or scripting on macOS).
 - `--pdf` (on `build`) builds then exports to PDF in one shot. Requires macOS + Microsoft Word.
 - `export pdf` converts a built `.docx` to PDF via Microsoft Word (macOS only). Input defaults to `build`'s filename resolution; `--input` overrides it. The PDF reports its real page count.

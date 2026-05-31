@@ -73,10 +73,12 @@ docx_builder/
     _init.py          # init command; register() + handle()
     _export.py        # export pdf command; register() + handle()
     _install.py       # install skill command (interactive scope prompt)
+    _validate.py      # validate command (em/en dash gate); register() + handle()
   builder.py          # build() + init_project() + has_toc()
   export.py           # export_pdf() + finalize_source() via Word + JXA (macOS)
   toc_links.py        # opt-in PDF ToC-hyperlink repair via PyMuPDF (pdf-links extra)
   report.py           # post-build report: words, reading time, em-dash counter
+  validate.py         # content.yaml prose check: em/en dash & AI-tells (gateable)
   elements.py         # h1, h2, h3, body, bullet, bold_lead, reference, page_break
   figure.py           # figure(), figure_pair()
   pagination.py       # PAGE / NUMPAGES footer (style-driven)
@@ -122,6 +124,8 @@ docx_builder build                      # build using content.yaml in cwd
 docx_builder build /some/dir            # build in another dir
 docx_builder build --output Custom.docx
 docx_builder build --template-dir ~/templates
+docx_builder validate                   # fail on em/en dash in content.yaml prose
+docx_builder validate --strict          # also flag en-dash (U+2013)
 docx_builder install skill              # install Claude Code skill (asks scope)
 docx_builder install skill --scope local|global
 ```
