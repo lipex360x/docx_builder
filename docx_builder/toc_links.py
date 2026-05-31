@@ -31,12 +31,18 @@ def _heading_name(entry_text: str) -> str:
     return _TRAILING_LEADER.sub("", entry_text).strip()
 
 
-def _find_toc_page(document: Any, fitz_module: Any) -> Any | None:
+def _find_toc_pages(document: Any, fitz_module: Any) -> list[Any]:
+    toc_pages: list[Any] = []
     for page in document:
         goto_links = [link for link in page.get_links() if link.get("kind") == fitz_module.LINK_GOTO]
-        if len(goto_links) >= MINIMUM_TOC_LINKS:
-            return page
-    return None
+        if not toc_pages:
+            if len(goto_links) >= MINIMUM_TOC_LINKS:
+                toc_pages.append(page)
+        elif goto_links:
+            toc_pages.append(page)
+        else:
+            break
+    return toc_pages
 
 
 def _resolve_destination(
@@ -52,39 +58,50 @@ def _resolve_destination(
     return None
 
 
-def _rewritten_destinations(document: Any, toc_page: Any, fitz_module: Any) -> list[tuple[fitz.Rect, int, bool]]:
-    goto_links = [link for link in toc_page.get_links() if link.get("kind") == fitz_module.LINK_GOTO]
-    first_body_index = toc_page.number + 1
-    rewrites: list[tuple[fitz.Rect, int, bool]] = []
+def _plan_rewrites(
+    document: Any,
+    toc_pages: list[Any],
+    first_body_index: int,
+    fitz_module: Any,
+) -> tuple[list[tuple[int, list[tuple[fitz.Rect, int]]]], int]:
+    plans: list[tuple[int, list[tuple[fitz.Rect, int]]]] = []
+    corrected = 0
     minimum_index = first_body_index
-    for link in goto_links:
-        rectangle = link["from"]
-        name = _heading_name(toc_page.get_textbox(rectangle))
-        destination_index = _resolve_destination(document, name, first_body_index, minimum_index)
-        if destination_index is None:
-            destination_index = link.get("page", first_body_index)
-        corrected = destination_index != link.get("page")
-        rewrites.append((rectangle, destination_index, corrected))
-        minimum_index = destination_index
-    return rewrites
+    for toc_page in toc_pages:
+        page_rewrites: list[tuple[fitz.Rect, int]] = []
+        for link in toc_page.get_links():
+            if link.get("kind") != fitz_module.LINK_GOTO:
+                continue
+            rectangle = link["from"]
+            name = _heading_name(toc_page.get_textbox(rectangle))
+            destination_index = _resolve_destination(document, name, first_body_index, minimum_index)
+            if destination_index is None:
+                destination_index = link.get("page", first_body_index)
+            if destination_index != link.get("page"):
+                corrected += 1
+            page_rewrites.append((rectangle, destination_index))
+            minimum_index = destination_index
+        plans.append((toc_page.number, page_rewrites))
+    return plans, corrected
 
 
 def _apply_rewrites(
     document: Any,
-    toc_page: Any,
-    rewrites: list[tuple[fitz.Rect, int, bool]],
+    plans: list[tuple[int, list[tuple[fitz.Rect, int]]]],
     fitz_module: Any,
 ) -> None:
-    document.xref_set_key(toc_page.xref, "Annots", "[]")
-    for rectangle, destination_index, _corrected in rewrites:
-        toc_page.insert_link(
-            {
-                "kind": fitz_module.LINK_GOTO,
-                "from": rectangle,
-                "page": destination_index,
-                "to": fitz_module.Point(0, 0),
-            }
-        )
+    for page_number, page_rewrites in plans:
+        page = document[page_number]
+        document.xref_set_key(page.xref, "Annots", "[]")
+        for rectangle, destination_index in page_rewrites:
+            page.insert_link(
+                {
+                    "kind": fitz_module.LINK_GOTO,
+                    "from": rectangle,
+                    "page": destination_index,
+                    "to": fitz_module.Point(0, 0),
+                }
+            )
 
 
 def fix_toc_links(pdf_path: Path) -> int:
@@ -96,13 +113,14 @@ def fix_toc_links(pdf_path: Path) -> int:
         source.close()
 
         document = fitz_module.open(str(repaired_path))
-        toc_page = _find_toc_page(document, fitz_module)
-        if toc_page is None:
+        toc_pages = _find_toc_pages(document, fitz_module)
+        if not toc_pages:
             document.close()
             return 0
 
-        rewrites = _rewritten_destinations(document, toc_page, fitz_module)
-        _apply_rewrites(document, toc_page, rewrites, fitz_module)
+        first_body_index = toc_pages[-1].number + 1
+        plans, corrected = _plan_rewrites(document, toc_pages, first_body_index, fitz_module)
+        _apply_rewrites(document, plans, fitz_module)
         document.save(str(pdf_path))
         document.close()
-        return sum(1 for _rectangle, _destination_index, corrected in rewrites if corrected)
+        return corrected

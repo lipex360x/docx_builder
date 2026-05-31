@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`--fix-toc-links` now handles a table of contents that spans more than one page.** Previously `fix_toc_links` only processed the first ToC page and searched for headings starting from the page right after it — which, for a 2-page ToC, is still inside the ToC. Links on later ToC pages were left uncorrected and some matches could resolve inside the ToC itself. It now treats the contiguous block of ToC pages as a unit: it rewrites links on every ToC page and resolves heading pages only after the last ToC page. (Found while testing a 50-entry ToC: the broken case went from `Fixed 30` / 20 still wrong to `Fixed 50` / 0 wrong.)
+
 ### Planned
 
 - Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls (quote, callout, table, code_block, …) without touching the core renderer.
