@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Generic `table` section type for `content.yaml`.** A new `call: table` renders a tabular grid from a list of `rows` (each a list of cell values), with an optional bold `header` row. `widths` set per-column width as a percentage of the usable page width (must sum to 100, so the table never overflows the margins); `borders` (default `true`) draws single-line borders via OXML — template-independent, so it works regardless of the cover template's named styles — or reuses the existing borderless path when `false`. Cell text honours the `table` style key (defaults: `font_size: 10pt`, `header_bold: true`, `align: left`) and a `\n` in a cell becomes a line break. Ragged rows, mismatched/`!=100` `widths`, and empty tables raise a clear error. `docx_builder validate` scans table cell prose (header + every row cell) for the same em/en-dash & AI-tell characters it already gates in `body`/`caption`. Closes #30.
+- **Table cell shading.** The `table` style key gained two opt-in colour fields: `header_fill` paints the header row, and `stripe_fill` zebra-stripes alternate data rows (the 2nd, 4th, … data row; the header is never striped). Both accept `#RRGGBB` or `RRGGBB`, are off by default, and are drawn via OXML `w:shd`. Painting an individual cell and merging cells remain unsupported (the latter is a follow-up design item). Part of #30.
 
 ## [0.10.0] - 2026-05-31
 

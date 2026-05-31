@@ -8,7 +8,7 @@ from docx.oxml.ns import qn
 from docx.shared import Emu
 from docx.table import Table, _Cell
 
-from docx_builder.styles import apply_paragraph_style, apply_run_style
+from docx_builder.styles import apply_paragraph_style, apply_run_style, parse_color
 
 _WIDTH_TOLERANCE = 0.5
 
@@ -80,16 +80,52 @@ def table(
     else:
         remove_table_borders(table_element)
 
-    header_bold = bool(style.get("header_bold", True))
-    for row_index, (values, is_header) in enumerate(body_rows):
-        for column_index in range(column_count):
-            cell = table_element.cell(row_index, column_index)
-            text = str(values[column_index]) if column_index < len(values) else ""
-            _fill_cell(cell, text, style, bold=is_header and header_bold)
+    _populate(table_element, body_rows, style, column_count)
 
     if widths is not None:
         _apply_widths(document, table_element, widths)
     return table_element
+
+
+def _fill_hex(value: object) -> str | None:
+    color = parse_color(value)
+    return str(color) if color is not None else None
+
+
+def _row_fills(
+    body_rows: list[tuple[list[Any], bool]], header_fill: str | None, stripe_fill: str | None
+) -> list[str | None]:
+    fills: list[str | None] = []
+    data_index = 0
+    for _values, is_header in body_rows:
+        if is_header:
+            fills.append(header_fill)
+            continue
+        fills.append(stripe_fill if data_index % 2 == 1 else None)
+        data_index += 1
+    return fills
+
+
+def _shade_cell(cell: _Cell, fill_hex: str) -> None:
+    shading = OxmlElement("w:shd")
+    shading.set(qn("w:val"), "clear")
+    shading.set(qn("w:color"), "auto")
+    shading.set(qn("w:fill"), fill_hex)
+    cell._tc.get_or_add_tcPr().append(shading)
+
+
+def _populate(
+    table_element: Table, body_rows: list[tuple[list[Any], bool]], style: dict[str, Any], column_count: int
+) -> None:
+    header_bold = bool(style.get("header_bold", True))
+    fills = _row_fills(body_rows, _fill_hex(style.get("header_fill")), _fill_hex(style.get("stripe_fill")))
+    for row_index, ((values, is_header), fill) in enumerate(zip(body_rows, fills, strict=True)):
+        for column_index in range(column_count):
+            cell = table_element.cell(row_index, column_index)
+            text = str(values[column_index]) if column_index < len(values) else ""
+            _fill_cell(cell, text, style, bold=is_header and header_bold)
+            if fill is not None:
+                _shade_cell(cell, fill)
 
 
 def _usable_width(document: Document) -> int:

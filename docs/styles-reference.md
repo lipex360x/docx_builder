@@ -107,8 +107,10 @@ Consumed by the `table` section type. Cell text inherits the common paragraph ke
 | `font_size` | length (pt) | `10pt` | Applied to every cell run. |
 | `header_bold` | bool | `true` | Whether the header row (when present) is bold. Set `false` to keep the header plain. |
 | `align` | enum | `left` | Horizontal alignment within each cell. |
+| `header_fill` | hex color | none | Background colour of the header row. Omit for no fill. Accepts `#RRGGBB` or `RRGGBB`. |
+| `stripe_fill` | hex color | none | Zebra striping: background colour applied to alternate data rows (the 2nd, 4th, … data row). The header is never striped. Omit for no zebra. |
 
-Borders and per-column widths are not style keys — they are set per section via `borders:` (default `true`) and `widths:` (a list of per-column percentages that must sum to 100).
+Borders and per-column widths are not style keys — they are set per section via `borders:` (default `true`) and `widths:` (a list of per-column percentages that must sum to 100). Cell-level shading (painting one specific cell) and cell merging are not supported yet.
 
 ### `footer`
 

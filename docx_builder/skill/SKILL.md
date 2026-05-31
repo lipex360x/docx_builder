@@ -191,6 +191,7 @@ Rules to honour when authoring a `table`:
 - `borders` defaults to `true` (single-line borders, drawn via OXML so it does not depend on a "Table Grid" style in the cover template). Set `false` for a borderless grid.
 - A cell value containing `\n` becomes a line break inside that cell.
 - The `table` style key defaults to `font_size: 10pt`, `header_bold: true`, `align: left`. Set `header_bold: false` to keep the header plain.
+- **Cell shading:** `header_fill` paints the header row, `stripe_fill` zebra-stripes alternate data rows (the 2nd, 4th, … data row; the header is never striped). Both are style keys, opt-in (no fill by default), and accept `#RRGGBB` or `RRGGBB`. Example: `style: { header_fill: "#003366", stripe_fill: "#EEF3FA" }`. Painting one specific cell, and merging cells, are not supported yet.
 - `docx_builder validate` scans table cell prose (header + every row cell) for em/en-dashes and AI-tells, just like `body`/`caption`. Do not introduce `U+2014` in table cells.
 
 Any section may appear in either `front_matter` or `sections`. The distinction is only about page numbering. **Exception:** a `toc` is always treated as front matter (footer cleared, kept out of the `PAGE` sequence) wherever you place it, so the body always starts at `PAGE 1` even if you list the `toc` under `sections:`.

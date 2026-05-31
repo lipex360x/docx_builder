@@ -325,6 +325,20 @@ def test_render_sections_table_inline_style() -> None:
     assert not document.tables[0].cell(0, 0).paragraphs[0].runs[0].bold
 
 
+def test_render_sections_table_shading() -> None:
+    from docx.oxml.ns import qn
+
+    document = Document()
+    render_sections(
+        document,
+        [{"call": "table", "header": ["A"], "rows": [["a"]], "style": {"header_fill": "#001122"}}],
+        images_dir="/nonexistent",
+        resolver=_RESOLVER,
+    )
+    table_cell_properties = document.tables[0].cell(0, 0)._tc.find(qn("w:tcPr"))
+    assert table_cell_properties.find(qn("w:shd")).get(qn("w:fill")) == "001122"
+
+
 def test_render_sections_table_ragged_raises() -> None:
     document = Document()
     with pytest.raises(ValueError, match="row"):

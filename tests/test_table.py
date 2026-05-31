@@ -8,6 +8,14 @@ from docx_builder.table import remove_table_borders, set_table_borders, table
 _RESOLVER = StyleResolver()
 
 
+def _cell_fill(cell: object) -> str | None:
+    table_cell_properties = cell._tc.find(qn("w:tcPr"))  # type: ignore[attr-defined]
+    if table_cell_properties is None:
+        return None
+    shading = table_cell_properties.find(qn("w:shd"))
+    return None if shading is None else shading.get(qn("w:fill"))
+
+
 def test_remove_table_borders_adds_borders_element() -> None:
     document = Document()
     table_element = document.add_table(rows=1, cols=2)
@@ -157,6 +165,59 @@ def test_table_zero_columns_raises() -> None:
     document = Document()
     with pytest.raises(ValueError, match="at least one column"):
         table(document, [], _RESOLVER.resolve("table"), header=[])
+
+
+def test_table_no_fill_keys_no_shading() -> None:
+    document = Document()
+    result = table(document, [["a", "b"]], _RESOLVER.resolve("table"), header=["A", "B"])
+    for row_index in range(2):
+        for column_index in range(2):
+            assert _cell_fill(result.cell(row_index, column_index)) is None
+
+
+def test_table_header_fill_shades_header_only() -> None:
+    document = Document()
+    style = {**_RESOLVER.resolve("table"), "header_fill": "#003366"}
+    result = table(document, [["a", "b"]], style, header=["A", "B"])
+    assert _cell_fill(result.cell(0, 0)) == "003366"
+    assert _cell_fill(result.cell(0, 1)) == "003366"
+    assert _cell_fill(result.cell(1, 0)) is None
+
+
+def test_table_fill_accepts_bare_hex() -> None:
+    document = Document()
+    style = {**_RESOLVER.resolve("table"), "header_fill": "AABBCC"}
+    result = table(document, [["a"]], style, header=["A"])
+    assert _cell_fill(result.cell(0, 0)) == "AABBCC"
+
+
+def test_table_stripe_fill_zebra() -> None:
+    document = Document()
+    style = {**_RESOLVER.resolve("table"), "stripe_fill": "#EEEEEE"}
+    result = table(document, [["r0"], ["r1"], ["r2"]], style, header=["H"])
+    assert _cell_fill(result.cell(0, 0)) is None
+    assert _cell_fill(result.cell(1, 0)) is None
+    assert _cell_fill(result.cell(2, 0)) == "EEEEEE"
+    assert _cell_fill(result.cell(3, 0)) is None
+
+
+def test_table_stripe_fill_zebra_without_header() -> None:
+    document = Document()
+    style = {**_RESOLVER.resolve("table"), "stripe_fill": "#DDDDDD"}
+    result = table(document, [["d0"], ["d1"], ["d2"], ["d3"]], style)
+    assert _cell_fill(result.cell(0, 0)) is None
+    assert _cell_fill(result.cell(1, 0)) == "DDDDDD"
+    assert _cell_fill(result.cell(2, 0)) is None
+    assert _cell_fill(result.cell(3, 0)) == "DDDDDD"
+
+
+def test_table_header_and_stripe_fill_combined() -> None:
+    document = Document()
+    style = {**_RESOLVER.resolve("table"), "header_fill": "#112233", "stripe_fill": "#445566"}
+    result = table(document, [["d0"], ["d1"]], style, header=["H"])
+    assert _cell_fill(result.cell(0, 0)) == "112233"
+    assert _cell_fill(result.cell(1, 0)) is None
+    assert _cell_fill(result.cell(2, 0)) == "445566"
 
 
 def test_table_widths_wrong_length_raises() -> None:

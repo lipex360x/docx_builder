@@ -227,6 +227,17 @@ A `table` takes a list of `rows` (each a list of cell values) and an optional bo
 
 All rows must have the same number of cells as the column count. `widths` are percentages of the usable page width (so the table never overflows the margins) and must sum to 100. A cell value with `\n` becomes a line break inside the cell. Set `borders: false` for a borderless grid.
 
+Optional cell shading via the `table` style key: `header_fill` paints the header row and `stripe_fill` zebra-stripes alternate data rows (both opt-in, accept `#RRGGBB` or `RRGGBB`):
+
+```yaml
+- call: table
+  header: [Mês, Vendas]
+  rows: [[Jan, "10k"], [Fev, "12k"], [Mar, "9k"]]
+  style: { header_fill: "#003366", stripe_fill: "#EEF3FA" }
+```
+
+Painting one specific cell, and merging cells, are not supported yet.
+
 Any section type may appear in either `front_matter` or `sections`. The distinction is only about page numbering. A `toc` is the exception: it is always unnumbered (kept out of the `PAGE` sequence) wherever you place it, so the body always starts at `PAGE 1`.
 
 ### Page numbering, three modes
