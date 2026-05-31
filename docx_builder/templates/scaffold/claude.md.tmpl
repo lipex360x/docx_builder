@@ -1,0 +1,48 @@
+# __PROJECT_NAME__
+
+Context for Claude Code working in this project, scaffolded by `docx_builder init`.
+
+## Layout (docx_builder skeleton)
+
+This project uses a role-based layout: each directory is a role in a pipeline.
+**Take only the layers you need; absent layers simply do not exist.** The list
+below describes every possible layer, so this file stays valid for any subset
+and never needs regenerating when a layer is added later. Check which directories
+are actually present before assuming one exists.
+
+- `report/` the build: `content.yaml` produces the document into `output/`
+  (`.docx`, plus `.pdf` on macOS).
+  - `report/images/` rendered figures referenced by `content.yaml`.
+  - `report/assets/` editable figure sources (html, svg, xlsx, diagrams).
+  - `report/output/` generated `.docx` and `.pdf`.
+  - `report/templates/` cover `.docx` templates, if any.
+  - `report/ai-check/` output of any AI-detection tooling (present with the `ai-check` layer).
+- `references/` reference and source material you consulted.
+- `brief/` the brief or instructions you are working from.
+- `src/` your work product: code, data, whatever you produce.
+- `tools/` automation scripts (see "Prereqs" below):
+  - `tools/monitor/` screenshot intake.
+  - `tools/ai-detection/` AI-detection drivers; their output goes to `report/ai-check/`.
+- `meta/` checklist, notes, metadata.
+- `.work/` transient scratch space (gitignored).
+
+## Build
+
+```bash
+docx_builder build .          # build the .docx (finalizes the TOC via Word on macOS)
+docx_builder build . --pdf    # build and export to PDF (macOS + Word)
+docx_builder validate .       # fail on em/en dash and other AI-tells in prose
+```
+
+`build` resolves `content.yaml` from this directory, falling back to `report/`.
+Drop figures into `report/images/` and keep their editable sources in `report/assets/`.
+
+## Prereqs for tools/ (only if you use them)
+
+`uv` and `claude-code` are required to run anything under `tools/`. AI-detection
+additionally needs a Chrome or Chromium with remote debugging plus network access.
+These are optional and only needed when you actually run those tools.
+
+## Project
+
+__PROJECT_NAME__: <one line describing what this is>.
