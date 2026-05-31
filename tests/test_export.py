@@ -30,7 +30,7 @@ def test_resolve_input_uses_build_default_pattern(tmp_path: Path) -> None:
 
     resolved = export.resolve_input_path(tmp_path, None)
 
-    assert resolved == tmp_path / "Report.docx"
+    assert resolved == tmp_path / "report" / "Report.docx"
 
 
 def test_resolve_input_uses_cover_output_template(tmp_path: Path) -> None:

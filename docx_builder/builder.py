@@ -12,6 +12,7 @@ from docx.document import Document as DocumentType
 
 from docx_builder.pagination import add_page_numbers
 from docx_builder.renderer import fill_cover, render_sections
+from docx_builder.scaffold import ScaffoldResult, scaffold
 from docx_builder.styles import StyleResolver
 
 _DEFAULT_OUTPUT_PATTERN = "Report_{number}.docx"
@@ -181,15 +182,16 @@ def build(
     return output_path
 
 
-def init_project(project_dir: str | Path, *, force: bool = False) -> Path:
+def init_project(
+    project_dir: str | Path,
+    *,
+    layers: set[str] | None = None,
+    name: str | None = None,
+    cover: bool = False,
+    force: bool = False,
+) -> ScaffoldResult:
     project_path = Path(project_dir).resolve()
-    project_path.mkdir(parents=True, exist_ok=True)
-
-    content_path = project_path / "content.yaml"
-    if content_path.exists() and not force:
-        raise FileExistsError(f"content.yaml already exists in {project_path} (use --force)")
-
-    skeleton = files("docx_builder.templates").joinpath("content.skeleton.yaml").read_text()
-    content_path.write_text(skeleton)
-
-    return content_path
+    resolved_name = name if name else project_path.name
+    return scaffold(
+        project_path, layers=layers if layers is not None else set(), name=resolved_name, cover=cover, force=force
+    )
