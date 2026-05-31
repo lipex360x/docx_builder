@@ -211,21 +211,42 @@ Every top-level block is optional. The minimal valid `content.yaml` produces a b
 | `reference` | `text` | `style` | Hanging-indent paragraph for bibliography entries |
 | `figure` | `filename`, `label`, `caption` | `width`, `style`, `caption_style` | Centred image with caption |
 | `figure_pair` | `filename1`, `filename2`, `label`, `caption` | `width1`, `width2`, `style`, `caption_style` | Two images side by side |
-| `table` | `rows` (or `header`) | `header`, `widths`, `borders`, `style` | Tabular grid; optional bold header row, per-column `%` widths, borders on by default |
+| `table` | `rows` (or `header`) | `header`, `widths`, `col_align`, `borders`, `style` | Tabular grid; bold header row, per-column `%` widths and alignment, cell shading, bullets-in-cell |
 
 A `table` takes a list of `rows` (each a list of cell values) and an optional bold `header` row:
 
 ```yaml
 - call: table
-  header: [Column A, Column B, Column C]
+  header: [Mês, Vendas, Custos]
   rows:
-    - [a1, b1, c1]
-    - [a2, b2, c2]
-  widths: [25, 45, 30]   # optional, % per column, must sum to 100
-  borders: true          # optional, default true
+    - [Janeiro, "10.000", "6.000"]
+    - [Fevereiro, "12.500", "7.200"]
+  widths: [40, 30, 30]          # optional, % per column, must sum to 100
+  col_align: [left, right, right]  # optional, horizontal align per column
+  borders: true                  # optional, default true
+  style:
+    header_fill: "#003366"       # header background
+    header_color: "#FFFFFF"      # header text colour (header only)
+    stripe_fill: "#EEF3FA"       # zebra background on alternate data rows
+    valign: center               # vertical align of every cell
 ```
 
 All rows must have the same number of cells as the column count. `widths` are percentages of the usable page width (so the table never overflows the margins) and must sum to 100. A cell value with `\n` becomes a line break inside the cell. Set `borders: false` for a borderless grid.
+
+Styling notes:
+
+- **Shading:** `header_fill` paints the header row, `stripe_fill` zebra-stripes alternate data rows (both accept `#RRGGBB` or `RRGGBB`, off by default).
+- **Header text:** `header_color` colours the header text only (pair it with a dark `header_fill`); the general `color` key paints every cell.
+- **Alignment:** `col_align` overrides alignment per column (great for numbers), `valign` (`top`/`center`/`bottom`) sets the vertical anchor of every cell.
+- **Font:** a table has no font of its own — cells inherit the document **body** font (the same one `call: body` uses), so the table always matches the running text. A document built without a cover template uses the blank `python-docx` theme, whose body font is **Cambria (serif)** while headings are Calibri (sans) — so `body`, `bullet` and the table all render serif there (not a table-specific issue). Set `font_family` on the `table` style to override the table's font only, or on `body`/`bullet`/etc. (or start from a modern cover template) to change the whole body.
+- **Bullets in a cell:** make a cell a `{bullets: [...]}` mapping and each item becomes a bulleted paragraph inside that cell:
+
+  ```yaml
+  rows:
+    - ["Features", { bullets: ["fast", "safe", "tested"] }]
+  ```
+
+Painting one specific cell, and merging cells, are not supported yet.
 
 Any section type may appear in either `front_matter` or `sections`. The distinction is only about page numbering. A `toc` is the exception: it is always unnumbered (kept out of the `PAGE` sequence) wherever you place it, so the body always starts at `PAGE 1`.
 

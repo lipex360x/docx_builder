@@ -134,6 +134,15 @@ def test_scan_content_flags_table_body_cell() -> None:
     assert "rows" in violations[0].location
 
 
+def test_scan_content_flags_table_cell_bullets() -> None:
+    data = {"sections": [{"call": "table", "rows": [["clean", {"bullets": ["ok", f"bad {EM_DASH} item"]}]]}]}
+
+    violations = validate.scan_content(data, validate.DEFAULT_FORBIDDEN)
+
+    assert len(violations) == 1
+    assert "rows" in violations[0].location
+
+
 def test_scan_content_table_ignores_non_prose_keys() -> None:
     data = {"sections": [{"call": "table", "rows": [["clean"]], "widths": [100], "borders": True, "style": "table"}]}
 
