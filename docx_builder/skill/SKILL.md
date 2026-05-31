@@ -24,6 +24,7 @@ If the request is **not** about generating/editing docs through this tool, do no
 ## Core workflow
 
 ```bash
+docx_builder --version        # print the installed version and exit (-v alias)
 docx_builder init             # scaffold a role-based project (report/ + CLAUDE.md + .gitignore + .work/)
 docx_builder init --full      # scaffold every layer + embedded screenshot_intake.py
 docx_builder init --with references,src   # base + named optional layers (deps auto-resolved)

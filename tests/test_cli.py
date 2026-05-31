@@ -124,6 +124,40 @@ def test_cli_init_full_silent_when_tools_present(
     assert "not found on PATH" not in capsys.readouterr().err
 
 
+def test_cli_version_flag(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as exit_info:
+        main(["--version"])
+
+    assert exit_info.value.code == 0
+    assert "docx_builder" in capsys.readouterr().out
+
+
+def test_cli_version_short_flag(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as exit_info:
+        main(["-v"])
+
+    assert exit_info.value.code == 0
+    assert "docx_builder" in capsys.readouterr().out
+
+
+def test_cli_help_lists_version(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit):
+        main(["--help"])
+
+    assert "--version" in capsys.readouterr().out
+
+
+def test_package_version_falls_back_when_metadata_missing(monkeypatch: pytest.MonkeyPatch) -> None:
+    from docx_builder import cli
+
+    def raise_not_found(_name: str) -> str:
+        raise cli.PackageNotFoundError(_name)
+
+    monkeypatch.setattr(cli, "version", raise_not_found)
+
+    assert cli._package_version() == "unknown"
+
+
 def test_cli_build_returns_zero_on_success(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     init_project(tmp_path)
 
