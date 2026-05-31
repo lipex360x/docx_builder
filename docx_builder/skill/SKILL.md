@@ -167,7 +167,7 @@ If you don't need a cover and you want page numbers on every section, just use `
 | `reference` | `text` | `style` |
 | `figure` | `filename`, `label`, `caption` | `width`, `style`, `caption_style` |
 | `figure_pair` | `filename1`, `filename2`, `label`, `caption` | `width1`, `width2`, `style`, `caption_style` |
-| `table` | `rows` (or `header`) | `header`, `widths`, `borders`, `style` |
+| `table` | `rows` (or `header`) | `header`, `widths`, `col_align`, `borders`, `style` |
 
 ### `table` section
 
@@ -180,8 +180,13 @@ A tabular grid. `rows` is a list of rows, each a list of cell values; `header` (
     - [a1, b1, c1]
     - [a2, b2, c2]
   widths: [25, 45, 30]                      # optional, % per column, must sum to 100
+  col_align: [left, right, right]           # optional, horizontal align per column
   borders: true                            # optional, default true
-  style: { font_size: 9pt }                # optional inline style override
+  style:                                    # optional style overrides
+    header_fill: "#003366"                  # header background colour
+    header_color: "#FFFFFF"                 # header text colour (header only)
+    stripe_fill: "#EEF3FA"                  # zebra background on alternate data rows
+    valign: center                          # vertical align of every cell
 ```
 
 Rules to honour when authoring a `table`:
@@ -190,8 +195,11 @@ Rules to honour when authoring a `table`:
 - `widths` (optional) are percentages of the **usable page width** (page width minus margins), so the table can never overflow the margins. They must have one entry per column and sum to 100.
 - `borders` defaults to `true` (single-line borders, drawn via OXML so it does not depend on a "Table Grid" style in the cover template). Set `false` for a borderless grid.
 - A cell value containing `\n` becomes a line break inside that cell.
-- The `table` style key defaults to `font_size: 10pt`, `header_bold: true`, `align: left`. Set `header_bold: false` to keep the header plain.
-- **Cell shading:** `header_fill` paints the header row, `stripe_fill` zebra-stripes alternate data rows (the 2nd, 4th, … data row; the header is never striped). Both are style keys, opt-in (no fill by default), and accept `#RRGGBB` or `RRGGBB`. Example: `style: { header_fill: "#003366", stripe_fill: "#EEF3FA" }`. Painting one specific cell, and merging cells, are not supported yet.
+- The `table` style key defaults to `font_size: 10pt`, `header_bold: true`, `align: left`. Set `header_bold: false` to keep the header plain. By default cells inherit the document **body** font (the same font a `body` paragraph uses), so a serif body theme yields a serif table; set `font_family` (e.g. `Arial`) on the `table` style to force a specific font for the table only.
+- **Cell shading:** `header_fill` paints the header row, `stripe_fill` zebra-stripes alternate data rows (the 2nd, 4th, … data row; the header is never striped). Both are style keys, opt-in (no fill by default), and accept `#RRGGBB` or `RRGGBB`. Painting one specific cell, and merging cells, are not supported yet.
+- **Header text colour:** `header_color` (style key) sets the text colour of the header row only — use it with a dark `header_fill` so the header text stays legible (e.g. white on navy) while the body keeps the normal `color`. Do not set `color` to white expecting only the header to change — `color` paints every cell.
+- **Alignment:** `col_align` (section-level list, one entry per column, `left`/`center`/`right`/`justify`) overrides the style `align` column by column — ideal for right-aligning numeric columns. `valign` (style key, `top`/`center`/`bottom`) sets the vertical anchor of every cell; it is only visible when a row is taller than its content (e.g. a multiline cell next to short ones).
+- **Bullets inside a cell:** a cell value may be a `{bullets: [...]}` mapping instead of a string; each list item becomes its own bulleted paragraph inside that cell (glyph from the `glyph` style key, default `"• "`). Example: `rows: [["Features", { bullets: ["fast", "safe", "tested"] }]]`. `validate` scans bullet item text for forbidden characters just like normal cells.
 - `docx_builder validate` scans table cell prose (header + every row cell) for em/en-dashes and AI-tells, just like `body`/`caption`. Do not introduce `U+2014` in table cells.
 
 Any section may appear in either `front_matter` or `sections`. The distinction is only about page numbering. **Exception:** a `toc` is always treated as front matter (footer cleared, kept out of the `PAGE` sequence) wherever you place it, so the body always starts at `PAGE 1` even if you list the `toc` under `sections:`.

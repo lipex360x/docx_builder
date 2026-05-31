@@ -105,12 +105,23 @@ Consumed by the `table` section type. Cell text inherits the common paragraph ke
 | Key | Type | Default | Notes |
 |---|---|---|---|
 | `font_size` | length (pt) | `10pt` | Applied to every cell run. |
+| `font_family` | string | inherits body | When omitted, cells inherit the document body font (the same font a `body` paragraph uses), so the table matches the running text. Set a name (e.g. `Arial`) to override. |
 | `header_bold` | bool | `true` | Whether the header row (when present) is bold. Set `false` to keep the header plain. |
-| `align` | enum | `left` | Horizontal alignment within each cell. |
+| `color` | hex color | inherits | Text colour of every cell. |
+| `header_color` | hex color | none | Text colour of the header row only — overrides `color` for the header so a dark `header_fill` can carry white header text while the body keeps `color`. |
+| `align` | enum | `left` | Default horizontal alignment within each cell (fallback when `col_align` is not given). |
+| `valign` | enum | none | Vertical alignment of every cell: `top` / `center` / `bottom`. Omit to leave Word's default (top). |
 | `header_fill` | hex color | none | Background colour of the header row. Omit for no fill. Accepts `#RRGGBB` or `RRGGBB`. |
 | `stripe_fill` | hex color | none | Zebra striping: background colour applied to alternate data rows (the 2nd, 4th, … data row). The header is never striped. Omit for no zebra. |
 
-Borders and per-column widths are not style keys — they are set per section via `borders:` (default `true`) and `widths:` (a list of per-column percentages that must sum to 100). Cell-level shading (painting one specific cell) and cell merging are not supported yet.
+Borders, per-column widths and per-column horizontal alignment are not style keys — they are set per section via `borders:` (default `true`), `widths:` (per-column percentages that must sum to 100) and `col_align:` (a per-column list of `left`/`center`/`right`/`justify`; it overrides the style `align` column by column, ideal for right-aligning numeric columns). Cell-level shading (painting one specific cell) and cell merging are not supported yet.
+
+A cell value is normally a string (a `\n` inside it becomes a line break). To put a bulleted list inside one cell, give that cell a `{bullets: [...]}` mapping instead of a string — each item becomes its own paragraph prefixed with the bullet glyph (the `glyph` style key, default `"• "`):
+
+```yaml
+rows:
+  - ["Features", { bullets: ["header colour", "zebra rows", "per-column align"] }]
+```
 
 ### `footer`
 
@@ -233,7 +244,7 @@ The numbered body section starts on a new page (the break between `front_matter`
 | `toc` | — | `levels` | — |
 | `figure` | `filename`, `label`, `caption` | `width`, `style`, `caption_style` | `figure`, `figure_caption` |
 | `figure_pair` | `filename1`, `filename2`, `label`, `caption` | `width1`, `width2`, `style`, `caption_style` | `figure_pair`, `figure_caption` |
-| `table` | `rows` (or `header`) | `header`, `widths`, `borders`, `style` | `table` |
+| `table` | `rows` (or `header`) | `header`, `widths`, `col_align`, `borders`, `style` | `table` |
 
 Any section type may appear in either `front_matter` or `sections`. A `toc` is always treated as front matter (unnumbered) wherever you place it.
 

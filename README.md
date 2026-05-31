@@ -211,30 +211,40 @@ Every top-level block is optional. The minimal valid `content.yaml` produces a b
 | `reference` | `text` | `style` | Hanging-indent paragraph for bibliography entries |
 | `figure` | `filename`, `label`, `caption` | `width`, `style`, `caption_style` | Centred image with caption |
 | `figure_pair` | `filename1`, `filename2`, `label`, `caption` | `width1`, `width2`, `style`, `caption_style` | Two images side by side |
-| `table` | `rows` (or `header`) | `header`, `widths`, `borders`, `style` | Tabular grid; optional bold header row, per-column `%` widths, borders on by default |
+| `table` | `rows` (or `header`) | `header`, `widths`, `col_align`, `borders`, `style` | Tabular grid; bold header row, per-column `%` widths and alignment, cell shading, bullets-in-cell |
 
 A `table` takes a list of `rows` (each a list of cell values) and an optional bold `header` row:
 
 ```yaml
 - call: table
-  header: [Column A, Column B, Column C]
+  header: [Mês, Vendas, Custos]
   rows:
-    - [a1, b1, c1]
-    - [a2, b2, c2]
-  widths: [25, 45, 30]   # optional, % per column, must sum to 100
-  borders: true          # optional, default true
+    - [Janeiro, "10.000", "6.000"]
+    - [Fevereiro, "12.500", "7.200"]
+  widths: [40, 30, 30]          # optional, % per column, must sum to 100
+  col_align: [left, right, right]  # optional, horizontal align per column
+  borders: true                  # optional, default true
+  style:
+    header_fill: "#003366"       # header background
+    header_color: "#FFFFFF"      # header text colour (header only)
+    stripe_fill: "#EEF3FA"       # zebra background on alternate data rows
+    valign: center               # vertical align of every cell
 ```
 
 All rows must have the same number of cells as the column count. `widths` are percentages of the usable page width (so the table never overflows the margins) and must sum to 100. A cell value with `\n` becomes a line break inside the cell. Set `borders: false` for a borderless grid.
 
-Optional cell shading via the `table` style key: `header_fill` paints the header row and `stripe_fill` zebra-stripes alternate data rows (both opt-in, accept `#RRGGBB` or `RRGGBB`):
+Styling notes:
 
-```yaml
-- call: table
-  header: [Mês, Vendas]
-  rows: [[Jan, "10k"], [Fev, "12k"], [Mar, "9k"]]
-  style: { header_fill: "#003366", stripe_fill: "#EEF3FA" }
-```
+- **Shading:** `header_fill` paints the header row, `stripe_fill` zebra-stripes alternate data rows (both accept `#RRGGBB` or `RRGGBB`, off by default).
+- **Header text:** `header_color` colours the header text only (pair it with a dark `header_fill`); the general `color` key paints every cell.
+- **Alignment:** `col_align` overrides alignment per column (great for numbers), `valign` (`top`/`center`/`bottom`) sets the vertical anchor of every cell.
+- **Font:** cells inherit the document body font by default; set `font_family` on the `table` style to force a specific font for the table only.
+- **Bullets in a cell:** make a cell a `{bullets: [...]}` mapping and each item becomes a bulleted paragraph inside that cell:
+
+  ```yaml
+  rows:
+    - ["Features", { bullets: ["fast", "safe", "tested"] }]
+  ```
 
 Painting one specific cell, and merging cells, are not supported yet.
 

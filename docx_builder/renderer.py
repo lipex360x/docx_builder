@@ -91,6 +91,7 @@ def _render_media(
             header=item.get("header"),
             widths=item.get("widths"),
             borders=bool(item.get("borders", True)),
+            col_align=item.get("col_align"),
         )
         return True
 

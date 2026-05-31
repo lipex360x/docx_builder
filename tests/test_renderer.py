@@ -339,6 +339,35 @@ def test_render_sections_table_shading() -> None:
     assert table_cell_properties.find(qn("w:shd")).get(qn("w:fill")) == "001122"
 
 
+def test_render_sections_table_col_align_and_valign() -> None:
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.oxml.ns import qn
+
+    document = Document()
+    render_sections(
+        document,
+        [{"call": "table", "rows": [["a", "b"]], "col_align": ["left", "right"], "style": {"valign": "center"}}],
+        images_dir="/nonexistent",
+        resolver=_RESOLVER,
+    )
+    rendered = document.tables[0]
+    assert rendered.cell(0, 1).paragraphs[0].alignment == WD_ALIGN_PARAGRAPH.RIGHT
+    assert rendered.cell(0, 0)._tc.find(qn("w:tcPr")).find(qn("w:vAlign")).get(qn("w:val")) == "center"
+
+
+def test_render_sections_table_cell_bullets() -> None:
+    document = Document()
+    render_sections(
+        document,
+        [{"call": "table", "rows": [["Recursos", {"bullets": ["um", "dois"]}]]}],
+        images_dir="/nonexistent",
+        resolver=_RESOLVER,
+    )
+    cell = document.tables[0].cell(0, 1)
+    assert len(cell.paragraphs) == 2
+    assert cell.paragraphs[0].text == "• um"
+
+
 def test_render_sections_table_ragged_raises() -> None:
     document = Document()
     with pytest.raises(ValueError, match="row"):

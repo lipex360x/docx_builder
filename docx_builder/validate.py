@@ -85,9 +85,21 @@ def _scan_table(item: dict[str, Any], location_prefix: str, forbidden: dict[str,
             if not isinstance(row, list):
                 continue
             for column, value in enumerate(row):
-                if isinstance(value, str):
-                    violations.extend(scan_text(value, f"{location_prefix}.rows[{row_index}][{column}]", forbidden))
+                cell_location = f"{location_prefix}.rows[{row_index}][{column}]"
+                violations.extend(_scan_cell(value, cell_location, forbidden))
     return violations
+
+
+def _scan_cell(value: Any, location: str, forbidden: dict[str, str]) -> list[Violation]:
+    if isinstance(value, str):
+        return scan_text(value, location, forbidden)
+    if isinstance(value, dict) and isinstance(value.get("bullets"), list):
+        violations: list[Violation] = []
+        for index, item in enumerate(value["bullets"]):
+            if isinstance(item, str):
+                violations.extend(scan_text(item, f"{location}.bullets[{index}]", forbidden))
+        return violations
+    return []
 
 
 def _scan_sections(sections: list[dict[str, Any]], origin: str, forbidden: dict[str, str]) -> list[Violation]:
