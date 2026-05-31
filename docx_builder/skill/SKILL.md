@@ -167,6 +167,31 @@ If you don't need a cover and you want page numbers on every section, just use `
 | `reference` | `text` | `style` |
 | `figure` | `filename`, `label`, `caption` | `width`, `style`, `caption_style` |
 | `figure_pair` | `filename1`, `filename2`, `label`, `caption` | `width1`, `width2`, `style`, `caption_style` |
+| `table` | `rows` (or `header`) | `header`, `widths`, `borders`, `style` |
+
+### `table` section
+
+A tabular grid. `rows` is a list of rows, each a list of cell values; `header` (optional) is a single bold header row.
+
+```yaml
+- call: table
+  header: [Column A, Column B, Column C]   # optional bold header row
+  rows:
+    - [a1, b1, c1]
+    - [a2, b2, c2]
+  widths: [25, 45, 30]                      # optional, % per column, must sum to 100
+  borders: true                            # optional, default true
+  style: { font_size: 9pt }                # optional inline style override
+```
+
+Rules to honour when authoring a `table`:
+
+- Every row must have the same number of cells as the column count (the count comes from `header` when present, else from the first row). A ragged row raises a build error.
+- `widths` (optional) are percentages of the **usable page width** (page width minus margins), so the table can never overflow the margins. They must have one entry per column and sum to 100.
+- `borders` defaults to `true` (single-line borders, drawn via OXML so it does not depend on a "Table Grid" style in the cover template). Set `false` for a borderless grid.
+- A cell value containing `\n` becomes a line break inside that cell.
+- The `table` style key defaults to `font_size: 10pt`, `header_bold: true`, `align: left`. Set `header_bold: false` to keep the header plain.
+- `docx_builder validate` scans table cell prose (header + every row cell) for em/en-dashes and AI-tells, just like `body`/`caption`. Do not introduce `U+2014` in table cells.
 
 Any section may appear in either `front_matter` or `sections`. The distinction is only about page numbering. **Exception:** a `toc` is always treated as front matter (footer cleared, kept out of the `PAGE` sequence) wherever you place it, so the body always starts at `PAGE 1` even if you list the `toc` under `sections:`.
 

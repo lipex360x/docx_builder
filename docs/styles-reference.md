@@ -98,6 +98,18 @@ Inherits everything above and adds:
 | `caption_italic` | bool | `true` | Whether the caption body is italic. |
 | `space_after` | length (pt) | `16pt` | Spacing below the caption. |
 
+### `table`
+
+Consumed by the `table` section type. Cell text inherits the common paragraph keys (`font_size`, `font_family`, `color`, `align`, …); the table adds:
+
+| Key | Type | Default | Notes |
+|---|---|---|---|
+| `font_size` | length (pt) | `10pt` | Applied to every cell run. |
+| `header_bold` | bool | `true` | Whether the header row (when present) is bold. Set `false` to keep the header plain. |
+| `align` | enum | `left` | Horizontal alignment within each cell. |
+
+Borders and per-column widths are not style keys — they are set per section via `borders:` (default `true`) and `widths:` (a list of per-column percentages that must sum to 100).
+
 ### `footer`
 
 | Key | Type | Default | Notes |
@@ -175,6 +187,11 @@ figure_caption:
   font_size: 9pt
   space_after: 16pt
 
+table:
+  font_size: 10pt
+  header_bold: true
+  align: left
+
 footer:
   format: "{page} / {total}"
   align: right
@@ -214,6 +231,7 @@ The numbered body section starts on a new page (the break between `front_matter`
 | `toc` | — | `levels` | — |
 | `figure` | `filename`, `label`, `caption` | `width`, `style`, `caption_style` | `figure`, `figure_caption` |
 | `figure_pair` | `filename1`, `filename2`, `label`, `caption` | `width1`, `width2`, `style`, `caption_style` | `figure_pair`, `figure_caption` |
+| `table` | `rows` (or `header`) | `header`, `widths`, `borders`, `style` | `table` |
 
 Any section type may appear in either `front_matter` or `sections`. A `toc` is always treated as front matter (unnumbered) wherever you place it.
 

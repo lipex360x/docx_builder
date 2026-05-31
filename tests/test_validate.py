@@ -116,6 +116,30 @@ def test_scan_content_ignores_structural_calls() -> None:
     assert validate.scan_content(data, validate.DEFAULT_FORBIDDEN) == []
 
 
+def test_scan_content_flags_table_header_cell() -> None:
+    data = {"sections": [{"call": "table", "header": [f"Col {EM_DASH}"], "rows": [["clean"]]}]}
+
+    violations = validate.scan_content(data, validate.DEFAULT_FORBIDDEN)
+
+    assert len(violations) == 1
+    assert "header" in violations[0].location
+
+
+def test_scan_content_flags_table_body_cell() -> None:
+    data = {"sections": [{"call": "table", "rows": [["clean", f"bad {EM_DASH} cell"]]}]}
+
+    violations = validate.scan_content(data, validate.DEFAULT_FORBIDDEN)
+
+    assert len(violations) == 1
+    assert "rows" in violations[0].location
+
+
+def test_scan_content_table_ignores_non_prose_keys() -> None:
+    data = {"sections": [{"call": "table", "rows": [["clean"]], "widths": [100], "borders": True, "style": "table"}]}
+
+    assert validate.scan_content(data, validate.STRICT_FORBIDDEN) == []
+
+
 def test_en_dash_only_flagged_in_strict() -> None:
     data = {"sections": [{"call": "body", "text": f"range 1{EN_DASH}2"}]}
 

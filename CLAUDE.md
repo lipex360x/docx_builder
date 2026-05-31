@@ -86,7 +86,7 @@ docx_builder/
   renderer.py         # Section dispatcher driven by content.yaml
   styles.py           # StyleResolver + length/color/align parsing
   summary.py          # Word TOC field insertion
-  table.py            # Table border utilities
+  table.py            # table() section builder + border utilities
   skill_installer.py  # Logic for `docx_builder install skill`
   skill/
     SKILL.md          # Claude Code skill, shipped as package data

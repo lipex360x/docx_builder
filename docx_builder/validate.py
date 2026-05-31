@@ -72,10 +72,31 @@ def scan_text(text: str, location: str, forbidden: dict[str, str]) -> list[Viola
     return violations
 
 
+def _scan_table(item: dict[str, Any], location_prefix: str, forbidden: dict[str, str]) -> list[Violation]:
+    violations: list[Violation] = []
+    header = item.get("header")
+    if isinstance(header, list):
+        for column, value in enumerate(header):
+            if isinstance(value, str):
+                violations.extend(scan_text(value, f"{location_prefix}.header[{column}]", forbidden))
+    rows = item.get("rows")
+    if isinstance(rows, list):
+        for row_index, row in enumerate(rows):
+            if not isinstance(row, list):
+                continue
+            for column, value in enumerate(row):
+                if isinstance(value, str):
+                    violations.extend(scan_text(value, f"{location_prefix}.rows[{row_index}][{column}]", forbidden))
+    return violations
+
+
 def _scan_sections(sections: list[dict[str, Any]], origin: str, forbidden: dict[str, str]) -> list[Violation]:
     violations: list[Violation] = []
     for index, item in enumerate(sections):
         call = str(item.get("call", ""))
+        if call == "table":
+            violations.extend(_scan_table(item, f"{origin}[{index}].table", forbidden))
+            continue
         for field in _PROSE_FIELDS.get(call, ()):
             value = item.get(field)
             if not isinstance(value, str):

@@ -62,6 +62,11 @@ figure_caption:
   font_size: 9pt
   space_after: 16pt
 
+table:
+  font_size: 10pt
+  header_bold: true
+  align: left
+
 footer:
   format: "{page} / {total}"
   align: right

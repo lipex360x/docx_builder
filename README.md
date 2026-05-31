@@ -211,6 +211,21 @@ Every top-level block is optional. The minimal valid `content.yaml` produces a b
 | `reference` | `text` | `style` | Hanging-indent paragraph for bibliography entries |
 | `figure` | `filename`, `label`, `caption` | `width`, `style`, `caption_style` | Centred image with caption |
 | `figure_pair` | `filename1`, `filename2`, `label`, `caption` | `width1`, `width2`, `style`, `caption_style` | Two images side by side |
+| `table` | `rows` (or `header`) | `header`, `widths`, `borders`, `style` | Tabular grid; optional bold header row, per-column `%` widths, borders on by default |
+
+A `table` takes a list of `rows` (each a list of cell values) and an optional bold `header` row:
+
+```yaml
+- call: table
+  header: [Column A, Column B, Column C]
+  rows:
+    - [a1, b1, c1]
+    - [a2, b2, c2]
+  widths: [25, 45, 30]   # optional, % per column, must sum to 100
+  borders: true          # optional, default true
+```
+
+All rows must have the same number of cells as the column count. `widths` are percentages of the usable page width (so the table never overflows the margins) and must sum to 100. A cell value with `\n` becomes a line break inside the cell. Set `borders: false` for a borderless grid.
 
 Any section type may appear in either `front_matter` or `sections`. The distinction is only about page numbering. A `toc` is the exception: it is always unnumbered (kept out of the `PAGE` sequence) wherever you place it, so the body always starts at `PAGE 1`.
 
@@ -307,7 +322,7 @@ Full schema, accepted units, color formats, defaults, and every section type's k
 │   ├── renderer.py           # dispatches content.yaml section calls
 │   ├── styles.py             # StyleResolver + length/color/align parsing
 │   ├── summary.py            # Word TOC field insertion
-│   ├── table.py              # table border utilities
+│   ├── table.py              # table() builder + border utilities
 │   ├── skill_installer.py    # logic for `docx_builder install skill`
 │   ├── skill/
 │   │   └── SKILL.md          # Claude Code skill, shipped as package data
