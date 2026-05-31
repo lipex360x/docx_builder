@@ -25,7 +25,7 @@ If the request is **not** about generating/editing docs through this tool, do no
 
 ```bash
 docx_builder init             # scaffold a role-based project (report/ + CLAUDE.md + .gitignore + .work/)
-docx_builder init --full      # scaffold every layer + embedded monitor scripts
+docx_builder init --full      # scaffold every layer + embedded screenshot_intake.py
 docx_builder init --with references,src   # base + named optional layers (deps auto-resolved)
 docx_builder init --cover     # content.yaml with cover + TOC (Shape B)
 docx_builder build            # build using content.yaml in cwd (falls back to report/content.yaml)
@@ -44,7 +44,7 @@ docx_builder export pdf --open  # convert then open both the .pdf and the finali
 docx_builder export pdf --fix-toc-links  # opt-in: repair ToC hyperlinks Word's PDF engine shifted
 ```
 
-As of v0.8, `init` scaffolds a **role-based project structure**, not a marker file. Base `init` creates `report/` (with `content.yaml`, `images/`, `assets/`, `output/`, `templates/`) plus a single conditional `CLAUDE.md`, a `.gitignore` and a `.work/` scratch dir. `--with LAYERS` adds optional layers (`brief`, `references`, `src`, `meta`, `tools`, `monitor`, `ai-check`; deps auto-resolved, so `monitor`/`ai-check` pull `tools`), `--full` adds them all plus generic embedded monitor scripts, `--name` is injected into `CLAUDE.md` and `content.yaml` (defaulting to the directory name), and `--cover` writes Shape B. The scaffolder is **idempotent and additive**: re-running only fills gaps and never overwrites existing files without `--force`. The `ai-check` layer scaffolds the directories plus a README only (no detector scripts). The generated `content.yaml` is a Shape A (or Shape B) starter with `Replace me.` body text, so you (the assistant) still author the real content for whatever the user is building (CV, report, manual, paper, contract, fiction).
+As of v0.8, `init` scaffolds a **role-based project structure**, not a marker file. Base `init` creates `report/` (with `content.yaml`, `images/`, `assets/`, `output/`, `templates/`) plus a single conditional `CLAUDE.md`, a `.gitignore` and a `.work/` scratch dir. `--with LAYERS` adds optional layers (`brief`, `references`, `src`, `meta`, `tools`, `monitor`, `ai-check`; deps auto-resolved, so `monitor`/`ai-check` pull `tools`), `--full` adds them all plus a generic embedded `screenshot_intake.py` (the `monitor` layer: a cross-platform, race-safe PNG intake; the generated `CLAUDE.md` tells you to stop its watch loop once the document is done), `--name` is injected into `CLAUDE.md` and `content.yaml` (defaulting to the directory name), and `--cover` writes Shape B. The scaffolder is **idempotent and additive**: re-running only fills gaps and never overwrites existing files without `--force`. The `ai-check` layer scaffolds the directories plus a README only (no detector scripts). The generated `content.yaml` is a Shape A (or Shape B) starter with `Replace me.` body text, so you (the assistant) still author the real content for whatever the user is building (CV, report, manual, paper, contract, fiction).
 
 `build`, `validate` and the export path resolve `content.yaml` from the given directory, falling back to its `report/` subdirectory, so `docx_builder build .` works on a scaffolded project (where `content.yaml` lives under `report/`). A root-level `content.yaml` still takes precedence.
 

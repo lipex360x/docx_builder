@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Extensible section type registry — `register_section_type(name, handler)` for plugging in new section calls (quote, callout, table, code_block, …) without touching the core renderer.
 - PDF-to-YAML transcription workflow — guided protocol for analysing a source PDF (text + visual styles) and emitting a matching `content.yaml`.
 
+## [0.9.0] - 2026-05-31
+
+### Changed
+
+- **The `monitor` layer now ships a single cross-platform `screenshot_intake.py` instead of a bash watcher plus a Python mover.** `docx_builder init --full` (or `--with monitor`) writes `tools/monitor/screenshot_intake.py`; `watch_screenshots.sh` and `move_screenshot.py` are gone. The script runs a continuous watch loop by default and drains the backlog once with `--once`. It is race-safe: it processes PNGs **FIFO** (oldest-first by mtime, fixing the previous newest-first inversion that delivered screenshots out of order during a burst), waits for each file's size to be **stable** before moving it (so a half-written PNG is never picked up), and moves via an **atomic two-phase rename** through a hidden non-`.png` temp name (so the inbox never holds a partial file). The internal counter is used only for the temp name, never the final filename. Being pure Python, it behaves the same on Windows, Linux and macOS, and its logic is unit-tested. The generated `CLAUDE.md` now tells the assistant to stop the watch loop once the document's goal is fully achieved. Closes #26.
+
 ## [0.8.0] - 2026-05-31
 
 ### Added

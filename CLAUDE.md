@@ -93,7 +93,7 @@ docx_builder/
   templates/
     content.skeleton.yaml      # Legacy starter (kept for reference)
     default_styles.yaml        # Built-in style defaults
-    scaffold/                  # init templates: CLAUDE.md, .gitignore, content shapes, monitor scripts (.tmpl)
+    scaffold/                  # init templates: CLAUDE.md, .gitignore, content shapes, screenshot_intake (.tmpl)
 docs/
   styles-reference.md          # Full style schema (no-AI manual)
 tests/                # pytest suite (163 tests)
@@ -122,7 +122,7 @@ Then from any directory:
 
 ```bash
 docx_builder init                       # scaffold a role-based project (report/ + CLAUDE.md + .work/)
-docx_builder init --full --name "Report"  # all layers + monitor scripts; name injected
+docx_builder init --full --name "Report"  # all layers + screenshot_intake.py; name injected
 docx_builder init --with references,src  # base + named optional layers (deps auto-resolved)
 docx_builder init --cover                # content.yaml with cover + TOC (Shape B)
 docx_builder build                      # build using content.yaml in cwd
