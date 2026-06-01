@@ -47,6 +47,28 @@ docx_builder export pdf --fix-toc-links  # opt-in: repair ToC hyperlinks Word's 
 
 As of v0.8, `init` scaffolds a **role-based project structure**, not a marker file. Base `init` creates `report/` (with `content.yaml`, `images/`, `assets/`, `output/`, `templates/`) plus a single conditional `CLAUDE.md`, a `.gitignore` and a `.work/` scratch dir. `--with LAYERS` adds optional layers (`brief`, `references`, `src`, `meta`, `tools`, `monitor`, `ai-check`; deps auto-resolved, so `monitor`/`ai-check` pull `tools`), `--full` adds them all plus a generic embedded `screenshot_intake.py` (the `monitor` layer: a cross-platform, race-safe PNG intake; the generated `CLAUDE.md` tells you to stop its watch loop once the document is done), `--name` is injected into `CLAUDE.md` and `content.yaml` (defaulting to the directory name), and `--cover` writes Shape B. The scaffolder is **idempotent and additive**: re-running only fills gaps and never overwrites existing files without `--force`. The `ai-check` layer scaffolds the directories plus a README only (no detector scripts). The generated `content.yaml` is a Shape A (or Shape B) starter with `Replace me.` body text, so you (the assistant) still author the real content for whatever the user is building (CV, report, manual, paper, contract, fiction).
 
+### Scaffolded project layout — what each directory is for
+
+`init` builds a role-based project where each directory is a role in the pipeline. The base layout is always created; optional layers are added with `--with <names>` (comma-separated) or `--full`. Dependencies auto-resolve (e.g. `monitor` pulls `tools`).
+
+| Directory | Created by | Role |
+|---|---|---|
+| `report/` | base | the build: `content.yaml` renders into `output/` |
+| `report/images/` | base | rendered figures referenced by `content.yaml` |
+| `report/assets/` | base | editable figure sources (svg, xlsx, diagrams) |
+| `report/output/` | base | generated `.docx` (and `.pdf` on macOS) |
+| `report/templates/` | base | cover `.docx` templates, if any |
+| `.work/` | base | transient scratch space (gitignored) |
+| `brief/` | `--with brief` | the brief or instructions you are working from |
+| `references/` | `--with references` | reference and source material you consulted |
+| `src/` | `--with src` | your work product: code, data, whatever you produce |
+| `meta/` | `--with meta` | checklist, notes, metadata |
+| `tools/` | `--with tools` | automation scripts (pulled in by `monitor` and `ai-check`) |
+| `tools/monitor/` | `--with monitor` | race-safe `screenshot_intake.py` PNG intake (pulls `tools`) |
+| `tools/ai-detection/` + `report/ai-check/` | `--with ai-check` | AI-detection drivers, and where their output lands (pulls `tools`) |
+
+The generated `CLAUDE.md` carries this same per-directory legend, so a fresh Claude Code session opened inside a scaffolded project reads the roles directly. The root `CLAUDE.md` is conditional: it documents every possible layer and tells you to check which directories are actually present.
+
 `build`, `validate` and the export path resolve `content.yaml` from the given directory, falling back to its `report/` subdirectory, so `docx_builder build .` works on a scaffolded project (where `content.yaml` lives under `report/`). A root-level `content.yaml` still takes precedence.
 
 After every `build`, the CLI prints a short report: word count, estimated reading time (200 wpm), a page-count line (always `n/a` for a plain build — the real count is only known after the Word/PDF export), and an em-dash (`U+2014`) counter. When em-dashes are present the line is flagged `<- remove before shipping`. The user actively dislikes em-dashes: when authoring `content.yaml`, do not introduce `U+2014` characters, and if the report flags any, locate and replace them. The report only counts and flags — it never strips automatically.

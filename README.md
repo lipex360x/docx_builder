@@ -319,6 +319,10 @@ Full schema, accepted units, color formats, defaults, and every section type's k
 
 ## Project structure
 
+### Repository layout
+
+The package source tree:
+
 ```
 .
 ├── docx_builder/
@@ -356,6 +360,37 @@ Full schema, accepted units, color formats, defaults, and every section type's k
 ├── tests/                    # pytest suite
 └── pyproject.toml
 ```
+
+### A scaffolded project (`docx_builder init`)
+
+`init` creates a **role-based project** where each directory is a role in the pipeline. The base layout is always created:
+
+```
+.
+├── CLAUDE.md             # context for Claude Code working in this project
+├── .gitignore
+├── report/               # the build: content.yaml renders into output/
+│   ├── content.yaml      #   the document definition (starter, with "Replace me." body)
+│   ├── images/           #   rendered figures referenced by content.yaml
+│   ├── assets/           #   editable figure sources (svg, xlsx, diagrams)
+│   ├── output/           #   generated .docx (and .pdf on macOS)
+│   └── templates/        #   cover .docx templates, if any
+└── .work/                # transient scratch space (gitignored)
+```
+
+Optional layers are added with `--with <names>` (comma-separated) or all at once with `--full`. Dependencies are auto-resolved (e.g. `monitor` pulls in `tools`):
+
+| Layer | Directory | Role |
+|-------|-----------|------|
+| `brief` | `brief/` | the brief or instructions you are working from |
+| `references` | `references/` | reference and source material you consulted |
+| `src` | `src/` | your work product: code, data, whatever you produce |
+| `meta` | `meta/` | checklist, notes, metadata |
+| `tools` | `tools/` | automation scripts (pulled in by `monitor` and `ai-check`) |
+| `monitor` | `tools/monitor/` | race-safe `screenshot_intake.py` (pulls `tools`) |
+| `ai-check` | `tools/ai-detection/` + `report/ai-check/` | AI-detection drivers, and where their output lands (pulls `tools`) |
+
+Empty directories get a `.gitkeep`. The scaffolder is **idempotent**: re-running only adds what is missing and never overwrites existing files without `--force`. See [Quick start](#quick-start) for `--name` and `--cover`.
 
 <div align="right"><a href="#docx_builder">↑ Back to top</a></div>
 
