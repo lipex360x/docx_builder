@@ -103,6 +103,28 @@ CHANGELOG.md          # Keep a Changelog format; SemVer
 
 The package is fully agnostic: no bundled cover templates, no assignment-specific content. Users provide their own `content.yaml` and optionally their own cover `.docx`.
 
+### Scaffolded project layout (`init` output)
+
+The tree above is the **package source**. It is not what `docx_builder init` produces. `init` scaffolds a separate **role-based project** in the user's working directory, where each directory is a role in the pipeline. The base layout is always created; optional layers are added with `--with <names>` or `--full` (deps auto-resolve, e.g. `monitor` pulls `tools`).
+
+| Directory | Created by | Role |
+|---|---|---|
+| `report/` | base | the build: `content.yaml` renders into `output/` |
+| `report/images/` | base | rendered figures referenced by `content.yaml` |
+| `report/assets/` | base | editable figure sources (svg, xlsx, diagrams) |
+| `report/output/` | base | generated `.docx` (and `.pdf` on macOS) |
+| `report/templates/` | base | cover `.docx` templates, if any |
+| `.work/` | base | transient scratch space (gitignored) |
+| `brief/` | `--with brief` | the brief or instructions you are working from |
+| `references/` | `--with references` | reference and source material consulted |
+| `src/` | `--with src` | your work product: code, data, whatever you produce |
+| `meta/` | `--with meta` | checklist, notes, metadata |
+| `tools/` | `--with tools` | automation scripts (pulled in by `monitor` and `ai-check`) |
+| `tools/monitor/` | `--with monitor` | race-safe `screenshot_intake.py` PNG intake (pulls `tools`) |
+| `tools/ai-detection/` + `report/ai-check/` | `--with ai-check` | AI-detection drivers, and where their output lands (pulls `tools`) |
+
+The roles live authoritatively in `templates/scaffold/claude.md.tmpl` (rendered into each scaffolded project's own `CLAUDE.md`). Keep this table, that template, the README's "Project structure" section, and `skill/SKILL.md` in sync when a layer changes.
+
 ## Install and run
 
 ```bash
