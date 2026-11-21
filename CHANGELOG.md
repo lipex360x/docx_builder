@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Add `inspect-word` to read a document's live Word saved state and comments, or saved comments when closed.
+
 - Repair shifted and missing PDF table-of-contents links by default, while preserving other annotations. PyMuPDF is now a core dependency; `--no-fix-toc-links` skips repair.
 - Reuse locked, stable Word scratch filenames so permission grants can carry over between exports.
 

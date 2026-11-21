@@ -5,6 +5,7 @@ description = "Generate DOCX reports from a content.yaml in any working director
 requires-python = ">=3.11"
 dependencies = [
     "python-docx",
+    "lxml",
     "pyyaml",
     "pymupdf>=1.24",
 ]
@@ -48,6 +49,7 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RET", "C90", "S", "N", "PLR"]
 "docx_builder/cli/_shared.py" = ["S603", "S607"]
 "docx_builder/elements.py" = ["SLF001"]
 "docx_builder/export.py" = ["SLF001", "S603", "S607"]
+"docx_builder/word_inspect.py" = ["S603"]
 "docx_builder/figure.py" = ["PLR0913"]
 "docx_builder/pagination.py" = ["SLF001"]
 "docx_builder/summary.py" = ["SLF001"]

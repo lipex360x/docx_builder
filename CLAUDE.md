@@ -76,6 +76,7 @@ docx_builder/
     _validate.py      # validate command (em/en dash gate); register() + handle()
   builder.py          # build() + init_project() + has_toc()
   export.py           # export_pdf() + finalize_source() via Word + JXA (macOS)
+  word_inspect.py     # read-only inspection of Word state and comments
   toc_links.py        # automatic PDF ToC-hyperlink repair via PyMuPDF
   report.py           # post-build report: words, reading time, em-dash counter
   validate.py         # content.yaml prose check: em/en dash & AI-tells (gateable)

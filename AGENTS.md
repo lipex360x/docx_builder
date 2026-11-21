@@ -81,6 +81,7 @@ Important modules:
 - `docx_builder/summary.py`: Word ToC field insertion.
 - `docx_builder/pagination.py`: page fields and numbering restarts.
 - `docx_builder/export.py`: Word/JXA finalization and PDF export.
+- `docx_builder/word_inspect.py`: read-only Word state and comment inspection.
 - `docx_builder/toc_links.py`: automatic PyMuPDF ToC-link repair.
 - `docx_builder/validate.py`: prose validation.
 - `docx_builder/report.py`: post-build word/read-time/em-dash report.
@@ -112,6 +113,7 @@ uv run docx_builder build /path/to/project
 uv run docx_builder build /path/to/project --no-finalize
 uv run docx_builder build /path/to/project --pdf
 uv run docx_builder validate /path/to/project --strict
+uv run docx_builder inspect-word /path/to/Report.docx
 uv run docx_builder export pdf /path/to/project
 ```
 

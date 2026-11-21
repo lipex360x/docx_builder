@@ -37,6 +37,7 @@ docx_builder build --no-finalize  # skip the Word TOC-finalize pass (pure/fast; 
 docx_builder build --pdf      # build then export to PDF in one shot (macOS + Word)
 docx_builder build --open     # build, then open the .docx (macOS)
 docx_builder build --pdf --open  # build, export, then open BOTH the .pdf and the .docx in Word (macOS)
+docx_builder inspect-word /path/to/Report.docx  # inspect live Word state and comments
 docx_builder validate         # fail (exit 1) on em/en dash & AI-tells in content.yaml prose
 docx_builder validate --strict   # also flag en-dash (U+2013)
 docx_builder export pdf       # convert the built .docx to PDF (macOS + Word)
@@ -74,6 +75,10 @@ The generated `CLAUDE.md` carries this same per-directory legend, so a fresh Cla
 After every `build`, the CLI prints a short report: word count, estimated reading time (200 wpm), a page-count line (always `n/a` for a plain build — the real count is only known after the Word/PDF export), and an em-dash (`U+2014`) counter. When em-dashes are present the line is flagged `<- remove before shipping`. The user actively dislikes em-dashes: when authoring `content.yaml`, do not introduce `U+2014` characters, and if the report flags any, locate and replace them. The report only counts and flags — it never strips automatically.
 
 `docx_builder build` uses `python-docx`, which is not a renderer and cannot populate a TOC on its own. To fill the TOC and its page numbers something must drive Microsoft Word. As of v0.4, **`build` does this automatically by default**: when the document declares a `toc` section, after writing the `.docx` `build` drives Word (macOS + Microsoft Word) to update every table of contents and all fields, then writes the populated `.docx` back over the source — no manual F9, no PDF. TOC-less documents (CVs, one-pagers) never launch Word, so they cost nothing extra. If the environment is not macOS or Word is not installed, `build` does not error: it leaves the placeholder TOC field in place, prints a short `note:` to stderr, and exits 0 — open the `.docx` in Word and press `Cmd+A` then `F9`, or run `docx_builder export pdf`. Pass `--no-finalize` to skip the Word pass entirely (useful for CI/scripting on macOS where launching Word is undesirable). The `--pdf` path finalizes via the export step (see below) and does not double-launch Word.
+
+## Inspecting Word before an update
+
+On macOS, run `docx_builder inspect-word /absolute/path/Report.docx` before modifying or regenerating an existing user document. It reports the open document's saved state and live comments, including unsaved comments. For a closed DOCX it reads saved comments. It matches the full path and does not save or close the document. Review comments and preserve user changes; this read-only command does not automatically guard a later build or export.
 
 ## PDF export (macOS + Microsoft Word)
 

@@ -20,6 +20,7 @@ name = "docx-builder"
 version = "0.11.0"
 source = { editable = "." }
 dependencies = [
+    { name = "lxml" },
     { name = "pymupdf" },
     { name = "python-docx" },
     { name = "pyyaml" },
@@ -41,6 +42,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "lxml" },
     { name = "mypy", marker = "extra == 'dev'" },
     { name = "pymupdf", specifier = ">=1.24" },
     { name = "pytest", marker = "extra == 'dev'" },

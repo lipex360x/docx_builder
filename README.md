@@ -11,6 +11,7 @@ Define headings, body text, bullet points, figures, references, and a table of c
 
 - [How it works](#how-it-works)
 - [Install](#install)
+- [Inspecting a Word document](#inspecting-a-word-document)
 - [Quick start](#quick-start)
 - [content.yaml reference](#contentyaml-reference)
 - [Styles](#styles)
@@ -44,7 +45,7 @@ Requirements:
 - macOS and Microsoft Word for PDF export and automatic table-of-contents updates. Building a DOCX without those steps also works on Windows and Linux.
 - On first use, Word may ask for access to the fixed temporary DOCX and PDF files; later exports can reuse those grants.
 
-The installer automatically installs `python-docx`, `PyYAML` and `PyMuPDF`. No separate PDF repair extra is required.
+The installer automatically installs `python-docx`, `lxml`, `PyYAML` and `PyMuPDF`. No separate PDF repair extra is required.
 
 Install once as a global tool with `uv`, straight from the repository:
 
@@ -75,6 +76,16 @@ uv tool install --reinstall .
 <div align="right"><a href="#docx_builder">↑ Back to top</a></div>
 
 ---
+
+## Inspecting a Word document
+
+On macOS, inspect an open document's saved state and live comments, including comments that have not been saved:
+
+```bash
+docx_builder inspect-word /path/to/Report.docx
+```
+
+The command matches the full path, not just the filename. If the file is closed, it reads saved comments from the DOCX instead. It does not save, close or modify the document, and it does not automatically protect a later `build` or `export`. Review the result and preserve user changes before overwriting a report. Automation permissions for Microsoft Word may be requested by macOS.
 
 ## Quick start
 
