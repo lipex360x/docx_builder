@@ -453,7 +453,7 @@ def test_cli_export_pdf_fix_toc_links_threads_through(tmp_path: Path, monkeypatc
     assert calls == [True]
 
 
-def test_cli_export_pdf_fix_toc_links_defaults_false(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_cli_export_pdf_fix_toc_links_defaults_true(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     calls: list[bool] = []
 
     def fake_export(
@@ -469,7 +469,7 @@ def test_cli_export_pdf_fix_toc_links_defaults_false(tmp_path: Path, monkeypatch
     exit_code = main(["export", "pdf", str(tmp_path)])
 
     assert exit_code == 0
-    assert calls == [False]
+    assert calls == [True]
 
 
 def test_cli_build_pdf_fix_toc_links_threads_through(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -644,3 +644,16 @@ def test_open_in_word_invokes_microsoft_word(monkeypatch: pytest.MonkeyPatch) ->
     _shared.open_in_word(Path("/report.docx"))
 
     assert commands == [(["open", "-a", "Microsoft Word", "/report.docx"], True)]
+
+
+def test_cli_export_pdf_can_skip_toc_link_repair(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[bool] = []
+
+    def fake_export(input_docx: Path, output_pdf: Path, update_source: bool = True, fix_toc_links: bool = True) -> Path:
+        calls.append(fix_toc_links)
+        return output_pdf
+
+    monkeypatch.setattr("docx_builder.cli._export.export_pdf", fake_export)
+    init_project(tmp_path)
+    assert main(["export", "pdf", str(tmp_path), "--no-fix-toc-links"]) == 0
+    assert calls == [False]

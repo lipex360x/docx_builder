@@ -23,9 +23,8 @@ written back over the source .docx so it ends finalized; pass
 --no-update-source to leave the source byte-identical. --open opens both the
 resulting .pdf and the finalized .docx (in Microsoft Word); macOS only. Input
 defaults to the filename build produces; output defaults to <input>.pdf.
---fix-toc-links post-processes the PDF to correct ToC hyperlink destinations
-that Word's PDF engine occasionally shifts; it needs the optional pdf-links
-extra (uv tool install 'docx_builder[pdf-links]').
+PDF export automatically repairs shifted or missing table-of-contents links.
+Use --no-fix-toc-links to skip this repair.
 """
 
 
@@ -35,7 +34,7 @@ def run_export(
     output_override: str | None,
     update_source: bool = True,
     open_result: bool = False,
-    fix_toc_links: bool = False,
+    fix_toc_links: bool = True,
 ) -> int:
     try:
         input_docx = resolve_input_path(project_dir, input_override)
@@ -98,6 +97,13 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
     pdf_parser.add_argument(
         "--fix-toc-links",
         action="store_true",
-        help="rewrite ToC hyperlink destinations in the PDF (needs the pdf-links extra; opt-in)",
+        default=True,
+        help="repair shifted ToC links in exported PDF (enabled by default)",
+    )
+    pdf_parser.add_argument(
+        "--no-fix-toc-links",
+        action="store_false",
+        dest="fix_toc_links",
+        help="skip automatic PDF table-of-contents link repair",
     )
     pdf_parser.set_defaults(func=handle)

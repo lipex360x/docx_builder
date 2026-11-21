@@ -38,6 +38,14 @@ Page numbers are added automatically to the `sections:` block. Items in `front_m
 
 ## Install
 
+Requirements:
+
+- Python 3.11 or newer and `uv` for the installation commands below.
+- macOS and Microsoft Word for PDF export and automatic table-of-contents updates. Building a DOCX without those steps also works on Windows and Linux.
+- On first use, Word may ask for access to the fixed temporary DOCX and PDF files; later exports can reuse those grants.
+
+The installer automatically installs `python-docx`, `PyYAML` and `PyMuPDF`. No separate PDF repair extra is required.
+
 Install once as a global tool with `uv`, straight from the repository:
 
 ```bash
@@ -53,11 +61,7 @@ uv tool install --editable .       # live install, source edits propagate withou
 
 This registers the `docx_builder` binary in `~/.local/bin/`. Because the package is content-agnostic, provide your own cover `.docx` through `cover.template` or `--template-dir` when you want a cover sheet.
 
-The core install has no PDF post-processing dependency. The opt-in `--fix-toc-links` flag needs the `pdf-links` extra, which adds [PyMuPDF](https://pymupdf.readthedocs.io/):
-
-```bash
-uv tool install 'git+https://github.com/lipex360x/docx_builder.git[pdf-links]'
-```
+PyMuPDF is included for automatic PDF table-of-contents link repair.
 
 To upgrade a **snapshot** install after pulling changes:
 
@@ -168,7 +172,7 @@ docx_builder build --pdf --open     # and open both the PDF and the finalised .d
 By default the export also writes the populated TOC back over the source `.docx`, so the source ends finalised. Pass `--no-update-source` to leave it byte-identical, useful when `export pdf --input SomeFile.docx` points at a file you do not want overwritten. `--open` is macOS-only; elsewhere it prints a note and skips.
 
 > [!NOTE]
-> **Known Word limitation: ToC hyperlinks in the PDF.** In the exported PDF, the clickable table-of-contents entries can occasionally jump to the heading one entry ahead of the target (clicking an entry lands on the next heading). This is a bug in Word for Mac's Save-as-PDF engine: the generated `.docx` bookmarks are correct, and page numbers and content are unaffected. The bug is rare, so the fix is opt-in: pass `--fix-toc-links` to `export pdf` or `build --pdf` to post-process the PDF and rewrite each ToC link to its heading's real page (it prints `Fixed N ToC link(s)`). This requires the optional `pdf-links` extra (`uv tool install 'docx_builder[pdf-links]'`); the default export path is unchanged and gains no new dependency.
+> **Word PDF ToC hyperlinks.** PDF export checks the generated table of contents and repairs shifted or missing destinations by default. Existing non-ToC links are preserved. Pass `--no-fix-toc-links` to skip this post-processing; `--fix-toc-links` remains supported for compatibility.
 
 <div align="right"><a href="#docx_builder">↑ Back to top</a></div>
 
@@ -337,7 +341,7 @@ The package source tree:
 │   │   └── _validate.py      # validate command (em/en dash gate)
 │   ├── builder.py            # build(), init_project(), has_toc()
 │   ├── export.py             # export_pdf() and finalize_source() via Word + JXA (macOS)
-│   ├── toc_links.py          # opt-in PDF ToC-hyperlink repair via PyMuPDF (pdf-links extra)
+│   ├── toc_links.py          # automatic PDF ToC-hyperlink repair via PyMuPDF
 │   ├── report.py             # post-build report: words, reading time, em-dash counter
 │   ├── validate.py           # content.yaml prose check: em/en dash & other AI-tells
 │   ├── scaffold.py           # role-based init scaffolder: layers, idempotence, .gitkeep
@@ -418,7 +422,7 @@ docx_builder install skill [--scope local|global]
 - `export pdf` converts a built `.docx` to PDF via Microsoft Word (macOS only). Input defaults to `build`'s filename resolution; `--input` overrides it. The PDF reports its real page count.
 - `--no-update-source` (on `export pdf`, honoured by `build --pdf`) leaves the source `.docx` byte-identical instead of writing back the populated TOC.
 - `--open` opens the result after the command finishes: with `--pdf` both the `.pdf` and the finalised `.docx` (in Word), otherwise the `.docx`. macOS-only; elsewhere it prints a note and skips.
-- `--fix-toc-links` (on `export pdf`, honoured by `build --pdf`) post-processes the PDF to repair ToC hyperlinks that Word's PDF engine shifted. Off by default; needs the optional `pdf-links` extra (`uv tool install 'docx_builder[pdf-links]'`).
+- PDF ToC links are repaired by default. `--no-fix-toc-links` skips repair; `--fix-toc-links` is retained for compatibility.
 
 <div align="right"><a href="#docx_builder">↑ Back to top</a></div>
 

@@ -25,8 +25,7 @@ names or assumptions verbatim.
   contents, and page-number fields;
 - validate prose for em/en dashes and related AI-tell characters;
 - drive Microsoft Word on macOS to finalize fields or export PDF; and
-- repair incorrectly shifted ToC hyperlinks in a PDF with the optional
-  `pdf-links` dependency.
+- repair incorrectly shifted ToC hyperlinks in a PDF using PyMuPDF.
 
 The package is content-agnostic. Do not add client-, assignment-, or
 report-specific content or cover files to the package.
@@ -82,7 +81,7 @@ Important modules:
 - `docx_builder/summary.py`: Word ToC field insertion.
 - `docx_builder/pagination.py`: page fields and numbering restarts.
 - `docx_builder/export.py`: Word/JXA finalization and PDF export.
-- `docx_builder/toc_links.py`: opt-in PyMuPDF ToC-link repair.
+- `docx_builder/toc_links.py`: automatic PyMuPDF ToC-link repair.
 - `docx_builder/validate.py`: prose validation.
 - `docx_builder/report.py`: post-build word/read-time/em-dash report.
 - `docx_builder/scaffold.py`: role-based, additive, idempotent project scaffold.
@@ -153,8 +152,7 @@ to the content directory, then `--template-dir`, then package data.
   fields unpopulated and prints a note.
 - Export updates the source `.docx` by default. Use `--no-update-source` when
   the input must remain byte-identical.
-- Use `--fix-toc-links` only for Word's shifted PDF ToC-link bug; it requires
-  the `pdf-links` extra.
+- PDF ToC-link repair runs by default; use `--no-fix-toc-links` to skip it.
 - Do not use LibreOffice as a drop-in validation renderer. It can change fonts,
   field behavior, and pagination.
 - Do not infer rendered page layout from `python-docx` or cached DOCX metadata.

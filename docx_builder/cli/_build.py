@@ -100,6 +100,13 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
     parser.add_argument(
         "--fix-toc-links",
         action="store_true",
-        help="with --pdf, rewrite ToC hyperlink destinations in the PDF (needs the pdf-links extra; opt-in)",
+        default=True,
+        help="repair shifted ToC links in exported PDF (enabled by default)",
+    )
+    parser.add_argument(
+        "--no-fix-toc-links",
+        action="store_false",
+        dest="fix_toc_links",
+        help="skip automatic PDF table-of-contents link repair",
     )
     parser.set_defaults(func=handle)

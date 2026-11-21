@@ -4,6 +4,8 @@ import re
 import shutil
 import subprocess
 import sys
+from collections.abc import Iterator
+from contextlib import contextmanager
 from importlib.resources import as_file, files
 from pathlib import Path
 
@@ -84,40 +86,54 @@ def _read_page_count(pdf_path: Path) -> int | None:
     return _parse_page_count(result.stdout)
 
 
+@contextmanager
+def _scratch_lock() -> Iterator[None]:
+    import fcntl
+
+    SCRATCH_DIRECTORY.mkdir(parents=True, exist_ok=True)
+    lock_path = SCRATCH_DIRECTORY.parent / "exports.lock"
+    with lock_path.open("a") as lock_file:
+        fcntl.flock(lock_file, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_file, fcntl.LOCK_UN)
+
+
 def export_pdf(
     input_docx: Path,
     output_pdf: Path,
     update_source: bool = True,
-    fix_toc_links: bool = False,
+    fix_toc_links: bool = True,
 ) -> Path:
     _require_word_environment()
     if not input_docx.exists():
         raise ExportError(f"input .docx not found: {input_docx}")
 
-    SCRATCH_DIRECTORY.mkdir(parents=True, exist_ok=True)
-    scratch_docx = SCRATCH_DIRECTORY / input_docx.name
-    scratch_pdf = SCRATCH_DIRECTORY / output_pdf.name
+    with _scratch_lock():
+        scratch_docx = SCRATCH_DIRECTORY / "docx_builder_source.docx"
+        scratch_pdf = SCRATCH_DIRECTORY / "docx_builder_export.pdf"
 
-    shutil.copyfile(input_docx, scratch_docx)
-    strip_toc_note(scratch_docx)
-    _run_jxa(scratch_docx, scratch_pdf)
+        shutil.copyfile(input_docx, scratch_docx)
+        strip_toc_note(scratch_docx)
+        _run_jxa(scratch_docx, scratch_pdf)
 
-    if fix_toc_links:
-        rewritten = toc_links.fix_toc_links(scratch_pdf)
-        print(f"Fixed {rewritten} ToC link(s)")
+        if fix_toc_links:
+            rewritten = toc_links.fix_toc_links(scratch_pdf)
+            print(f"Fixed {rewritten} ToC link(s)")
 
-    output_pdf.parent.mkdir(parents=True, exist_ok=True)
-    shutil.move(str(scratch_pdf), str(output_pdf))
-    if update_source:
-        shutil.move(str(scratch_docx), str(input_docx))
-    else:
-        scratch_docx.unlink(missing_ok=True)
+        output_pdf.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(scratch_pdf), str(output_pdf))
+        if update_source:
+            shutil.move(str(scratch_docx), str(input_docx))
+        else:
+            scratch_docx.unlink(missing_ok=True)
 
-    page_count = _read_page_count(output_pdf)
-    label = "page" if page_count == 1 else "pages"
-    count_display = page_count if page_count is not None else "?"
-    print(f"Exported: {output_pdf} ({count_display} {label})")
-    return output_pdf
+        page_count = _read_page_count(output_pdf)
+        label = "page" if page_count == 1 else "pages"
+        count_display = page_count if page_count is not None else "?"
+        print(f"Exported: {output_pdf} ({count_display} {label})")
+        return output_pdf
 
 
 def finalize_source(input_docx: Path) -> Path:
@@ -125,12 +141,12 @@ def finalize_source(input_docx: Path) -> Path:
     if not input_docx.exists():
         raise ExportError(f"input .docx not found: {input_docx}")
 
-    SCRATCH_DIRECTORY.mkdir(parents=True, exist_ok=True)
-    scratch_docx = SCRATCH_DIRECTORY / input_docx.name
+    with _scratch_lock():
+        scratch_docx = SCRATCH_DIRECTORY / "docx_builder_source.docx"
 
-    shutil.copyfile(input_docx, scratch_docx)
-    strip_toc_note(scratch_docx)
-    _run_jxa(scratch_docx, None)
+        shutil.copyfile(input_docx, scratch_docx)
+        strip_toc_note(scratch_docx)
+        _run_jxa(scratch_docx, None)
 
-    shutil.move(str(scratch_docx), str(input_docx))
-    return input_docx
+        shutil.move(str(scratch_docx), str(input_docx))
+        return input_docx

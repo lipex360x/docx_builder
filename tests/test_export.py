@@ -142,7 +142,7 @@ def test_export_finalizes_source_by_default(
     recorded: dict[str, Any] = {}
     monkeypatch.setattr(subprocess, "run", _fake_word_run_factory(scratch_dir, recorded))
 
-    export.export_pdf(source, destination)
+    export.export_pdf(source, destination, fix_toc_links=False)
 
     assert destination.exists()
     assert not list(scratch_dir.glob("*"))
@@ -186,7 +186,7 @@ def test_export_runs_toc_link_fix_when_requested(
     assert "Fixed 2 ToC link(s)" in capsys.readouterr().out
 
 
-def test_export_skips_toc_link_fix_by_default(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_export_runs_toc_link_fix_by_default(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(export.sys, "platform", "darwin")
     monkeypatch.setattr(export, "_word_is_installed", lambda: True)
 
@@ -199,14 +199,18 @@ def test_export_skips_toc_link_fix_by_default(monkeypatch: pytest.MonkeyPatch, t
     recorded: dict[str, Any] = {}
     monkeypatch.setattr(subprocess, "run", _fake_word_run_factory(scratch_dir, recorded))
 
-    def fail_fix(pdf_path: Path) -> int:
-        raise AssertionError("fix_toc_links should not run without the flag")
+    calls: list[Path] = []
 
-    monkeypatch.setattr(export.toc_links, "fix_toc_links", fail_fix)
+    def record_fix(pdf_path: Path) -> int:
+        calls.append(pdf_path)
+        return 0
+
+    monkeypatch.setattr(export.toc_links, "fix_toc_links", record_fix)
 
     export.export_pdf(source, destination)
 
     assert destination.exists()
+    assert len(calls) == 1
 
 
 def test_export_no_update_source_leaves_source_untouched(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -223,7 +227,7 @@ def test_export_no_update_source_leaves_source_untouched(monkeypatch: pytest.Mon
     recorded: dict[str, Any] = {}
     monkeypatch.setattr(subprocess, "run", _fake_word_run_factory(scratch_dir, recorded))
 
-    export.export_pdf(source, destination, update_source=False)
+    export.export_pdf(source, destination, update_source=False, fix_toc_links=False)
 
     assert destination.exists()
     assert source.read_bytes() == original_bytes
@@ -308,7 +312,7 @@ def test_export_pdf_real_word(tmp_path: Path) -> None:
     source = _make_docx_with_note(tmp_path / "Report.docx")
     destination = tmp_path / "Report.pdf"
 
-    export.export_pdf(source, destination)
+    export.export_pdf(source, destination, fix_toc_links=False)
 
     assert destination.exists()
 
