@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    import fitz
+    import pymupdf as fitz
 
 RECT_COORDINATES = 4
 HEADING_SEARCH_PREFIX = 28
@@ -18,7 +18,7 @@ def _load_fitz() -> Any:
     from docx_builder.export import ExportError
 
     try:
-        import fitz
+        import pymupdf as fitz
     except ImportError as exception:
         raise ExportError(_INSTALL_HINT) from exception
     return fitz

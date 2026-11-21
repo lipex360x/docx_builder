@@ -3,7 +3,7 @@ from __future__ import annotations
 import builtins
 from pathlib import Path
 
-import fitz
+import pymupdf as fitz
 import pytest
 
 from docx_builder import toc_links
@@ -126,8 +126,8 @@ def test_fix_raises_export_error_when_fitz_missing(tmp_path: Path, monkeypatch: 
     real_import = builtins.__import__
 
     def fake_import(name: str, *args: object, **kwargs: object) -> object:
-        if name == "fitz":
-            raise ImportError("No module named 'fitz'")
+        if name == "pymupdf":
+            raise ImportError("No module named 'pymupdf'")
         return real_import(name, *args, **kwargs)
 
     monkeypatch.setattr(builtins, "__import__", fake_import)
